@@ -15,3 +15,16 @@ See the [Requirements Spec](REQUIREMENTS.md) for details about the game and its 
 ## Materials provided
 
 See the [support library](support/README.md) for some useful modules.
+
+See the [maps](maps/README.md) for some draft maps.
+
+## Updating your starter kit
+
+To update your repo from the starter kit, *commit and push* your work, then
+
+    # do this once:
+    git remote add starter git@github.com:cs50spring2019/nuggets.git
+    # do this every time you want to update:
+    git pull starter master
+
+much like in these [instructions](https://www.cs.dartmouth.edu/~cs50/Labs/updates.html).
