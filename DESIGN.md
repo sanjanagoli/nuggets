@@ -46,16 +46,14 @@ We anticipate the following functions or modules:
     3. a *struct pointHashtable* that stores the points that are visible for the *participant*
     4. a character storing the participant's id
     5. a pointer to the game map
-
-
-
-
+    
 
 ### **Dataflow through modules**
 * *gameCom* will contain a pointer to a *masterGame* that it creates when it is first ran. *gameCom* enters into a loop where it handles client communications and calls methods to advance the game in *masterGame* based on what messages/movements from the clients it has received.
   * *masterGame* will has functions that will be called by *gameCom* to update the map, as well as player positions.
     * *map* will contain the master map, as well as wrapper functions that allow it to be easily interacted with. These functions will be employed by *masterGame* when assessing the validity of a player's move, as well as whether or not they have earned a nugget.
     * *map* will contain a function that, given a point, returns a list of all points that are currently visible via a ray cast algorithm. This will be used by *masterGame* to generate a player-specific map when *comGame* requests each player-specific map.
+
 
 ### **High-level Pseudo code (plain English-like language) for logic/algorithmic  flow**
 
