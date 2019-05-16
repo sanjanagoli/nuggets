@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include "point.h"
 
-typdef struct point {
+typedef struct point {
     int x;
     int y;
 } point_t;
@@ -114,5 +114,3 @@ void point_delete(point_t* point)
         free(point);
     }
 }
-
-
