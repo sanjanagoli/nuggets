@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include "point.h"
 
@@ -112,5 +113,16 @@ void point_delete(point_t* point)
 {
     if (point != NULL) {
         free(point);
+    }
+}
+
+/**************** point_print() ****************/
+/* see point.h for description */
+void point_print(point_t* point, FILE *fp)
+{
+    if (point != NULL) {
+        fprintf(fp, "(%d, %d)\n", point->x, point->y);
+    } else {
+        fprintf(fp, "(null)");
     }
 }

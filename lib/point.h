@@ -4,6 +4,10 @@
  * Sanjana Goli, May 2019
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 /* Structure holds int x and int y --> opaque to users of the module */
 typedef struct point point_t;
 
@@ -37,3 +41,6 @@ int point_decrementY(point_t* point);
 
 /* Frees the memory allocated for point by point_new */
 void point_delete(point_t* point);
+
+/* Prints x and y values to the specified file */
+void point_print(point_t* point, FILE *fp);
