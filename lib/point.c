@@ -12,6 +12,8 @@
 #include "point.h"
 
 typedef struct boolPoint boolPoint_t;
+boolPoint_t* boolPoint_new(bool containsValue, point_t* point);
+void boolPoint_delete(boolpoint_t* boolPoint);
 void set_iterateHelper(void *arg, const char *key, void *item);
 
 typedef struct point {
@@ -129,11 +131,9 @@ void point_delete(point_t* point)
 bool point_setHasPoint(point_t* point, set_t* set)
 {
     bool containsValue = false;
-    boolPoint_t *boolPoint = malloc(sizeof(boolPoint_t));
-    boolPoint->point = point;
-    boolPoint->containsValue = containsValue;
+    boolPoint_new(containsValue, point);
     set_iterate(set, boolPoint, set_iterateHelper);
-    free(boolPoint);
+    boolPoint_delete(boolPoint);
     return containsValue;
 }
 
@@ -143,5 +143,23 @@ void set_iterateHelper(void *arg, const char *key, void *item)
     boolPoint_t* boolPoint = arg;
     if (boolPoint->point == item) {
         boolPoint->containsValue = true;
+    }
+}
+
+boolPoint_t* boolPoint_new(bool containsValue, point_t* point)
+{
+    boolPoint_t* boolPoint = malloc(sizeof(boolPoint_t));
+    if (boolPoint == NULL) {
+        return NULL;
+    } else {
+        boolPoint->containsValue = containsValue;
+        boolPoint->point = point;
+    }
+}
+
+void boolPoint_delete(boolpoint_t* boolPoint)
+{
+    if (boolPoint != NULL) {
+        free(boolPoint);
     }
 }
