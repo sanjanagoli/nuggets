@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "set.h"
+#include "../support/set.h"
 #include "point.h"
 
 typedef struct boolPoint boolPoint_t;
