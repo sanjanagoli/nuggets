@@ -15,11 +15,16 @@ typedef struct point {
     int y;
 } point_t;
 
+typedef struct boolPoint {
+    point_t* point;
+    bool containsValue;
+} boolPoint_t;
+
 /**************** point_new() ****************/
 /* see point.h for description */
 point_t* point_new(int x, int y)
 {
-    point_t *point = count_malloc(sizeof(point_t));
+    point_t *point = malloc(sizeof(point_t));
 
     if (point == NULL) {
         return NULL; // error allocating point
@@ -112,5 +117,27 @@ void point_delete(point_t* point)
 {
     if (point != NULL) {
         free(point);
+    }
+}
+
+/**************** point_setHasPoint() ****************/
+/* see point.h for description */
+bool point_setHasPoint(point_t* point, set_t* set)
+{
+    bool containsValue = false;
+    boolPoint_t *boolPoint = malloc(sizeof(boolPoint_t));
+    boolPoint->point = point;
+    boolPoint->containsValue = containsValue;
+    set_iterate(set, boolPoint, set_iterateHelper);
+    free(boolPoint);
+    return containsValue;
+}
+
+/* takes in boolPoint struct in order to determine if value exists in set*/
+void set_iterateHelper(void *arg, const char *key, void *item)
+{
+    boolPoint_t* boolPoint = arg;
+    if (boolPoint->point == item) {
+        boolPoint->containsValue = true;
     }
 }
