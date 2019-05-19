@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "set.h"
+#include "../support/set.h"
 
 /* Structure holds int x and int y --> opaque to users of the module */
 typedef struct point point_t;
