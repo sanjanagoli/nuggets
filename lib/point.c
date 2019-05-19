@@ -8,7 +8,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "set.h"
 #include "point.h"
+
+typedef struct boolPoint boolPoint_t;
+void set_iterateHelper(void *arg, const char *key, void *item);
 
 typedef struct point {
     int x;

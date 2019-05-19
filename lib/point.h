@@ -4,6 +4,10 @@
  * Sanjana Goli, May 2019
  */
 
+#include <stdio.h>
+#include <stdbool.h>
+#include "set.h"
+
 /* Structure holds int x and int y --> opaque to users of the module */
 typedef struct point point_t;
 
