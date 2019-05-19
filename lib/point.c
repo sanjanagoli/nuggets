@@ -8,18 +8,29 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "set.h"
 #include "point.h"
+
+typedef struct boolPoint boolPoint_t;
+boolPoint_t* boolPoint_new(bool containsValue, point_t* point);
+void boolPoint_delete(boolpoint_t* boolPoint);
+void set_iterateHelper(void *arg, const char *key, void *item);
 
 typedef struct point {
     int x;
     int y;
 } point_t;
 
+typedef struct boolPoint {
+    point_t* point;
+    bool containsValue;
+} boolPoint_t;
+
 /**************** point_new() ****************/
 /* see point.h for description */
 point_t* point_new(int x, int y)
 {
-    point_t *point = count_malloc(sizeof(point_t));
+    point_t *point = malloc(sizeof(point_t));
 
     if (point == NULL) {
         return NULL; // error allocating point
@@ -112,5 +123,43 @@ void point_delete(point_t* point)
 {
     if (point != NULL) {
         free(point);
+    }
+}
+
+/**************** point_setHasPoint() ****************/
+/* see point.h for description */
+bool point_setHasPoint(point_t* point, set_t* set)
+{
+    bool containsValue = false;
+    boolPoint_new(containsValue, point);
+    set_iterate(set, boolPoint, set_iterateHelper);
+    boolPoint_delete(boolPoint);
+    return containsValue;
+}
+
+/* takes in boolPoint struct in order to determine if value exists in set*/
+void set_iterateHelper(void *arg, const char *key, void *item)
+{
+    boolPoint_t* boolPoint = arg;
+    if (boolPoint->point == item) {
+        boolPoint->containsValue = true;
+    }
+}
+
+boolPoint_t* boolPoint_new(bool containsValue, point_t* point)
+{
+    boolPoint_t* boolPoint = malloc(sizeof(boolPoint_t));
+    if (boolPoint == NULL) {
+        return NULL;
+    } else {
+        boolPoint->containsValue = containsValue;
+        boolPoint->point = point;
+    }
+}
+
+void boolPoint_delete(boolpoint_t* boolPoint)
+{
+    if (boolPoint != NULL) {
+        free(boolPoint);
     }
 }

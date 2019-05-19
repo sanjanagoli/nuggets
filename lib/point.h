@@ -4,6 +4,10 @@
  * Sanjana Goli, May 2019
  */
 
+#include <stdio.h>
+#include <stdbool.h>
+#include "set.h"
+
 /* Structure holds int x and int y --> opaque to users of the module */
 typedef struct point point_t;
 
@@ -37,3 +41,6 @@ int point_decrementY(point_t* point);
 
 /* Frees the memory allocated for point by point_new */
 void point_delete(point_t* point);
+
+/* Given a set of points, determine whether an item appears in the set at least once */
+void point_setHasPoint(point_t* point, set_t *set);
