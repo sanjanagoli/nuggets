@@ -134,7 +134,7 @@ char map_getChar(map_t* map, int x, int y) {
   return returnChar;
 }
 
-/**************** map_getChar ****************/
+/**************** map_getMapData ****************/
 /* see map.h for description */
 char* map_getMapData(map_t* map) {
   if (map == NULL) {
@@ -143,13 +143,19 @@ char* map_getMapData(map_t* map) {
   return map->mapData;
 }
 
-/**************** map_getNugs ****************/
+/**************** map_getNugLocs ****************/
 /* see map.h for description */
 set_t* map_getNugLocs(map_t* map) {
   if (map == NULL) {
     return NULL;
   }
   return map->nuggetLocs;
+}
+
+/**************** map_getUnconsumedNugLocs ****************/
+/* see map.h for description */ // Do this
+set_t* map_getUnconsumedNugLocs(map_t* map) {
+
 }
 
 /**************** map_consumeNug ****************/
@@ -416,15 +422,36 @@ static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, in
   char countString[4];
   char* countPointer = countString;
 
-  for (int xinc = -1; xinc <= 1; xinc++) {
-    for (int yinc = -1; yinc <= 1; yinc++) {
-      if (isWallChar((map_getChar(map, x+xinc, y+yinc))) &&
+  // Check diagonal corners around the point for '+'
+  for (int xinc = -1; xinc <= 1; xinc+=2) {
+    for (int yinc = -1; yinc <= 1; yinc+=2) {
+      if (map_getChar(map, x+xinc, y+yinc) == '+') &&
           setHasPointWrapper(visPoints, x+xinc, y+yinc)) {
         count++;
         sprintf(countString, "%i", *count);
         point_t* p = point_new(x+xinc, y+yinc);
         set_insert(visPoints, countPointer, p);
       }
+    }
+  }
+
+  // Check a "plus" area around the point for -|#
+  for (int xinc = -1; xinc <= 1; xinc++) {
+      if (isWallChar((map_getChar(map, x+xinc, y))) &&
+          setHasPointWrapper(visPoints, x+xinc, y)) {
+        count++;
+        sprintf(countString, "%i", *count);
+        point_t* p = point_new(x+xinc, y);
+        set_insert(visPoints, countPointer, p);
+      }
+    }
+  for (int yinc = -1; yinc <= 1; yinc++) {
+    if (isWallChar((map_getChar(map, x, y+yinc))) &&
+        setHasPointWrapper(visPoints, x, y+yinc)) {
+      count++;
+      sprintf(countString, "%i", *count);
+      point_t* p = point_new(x, y+yinc);
+      set_insert(visPoints, countPointer, p);
     }
   }
 }
