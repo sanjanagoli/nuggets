@@ -91,7 +91,7 @@ int point_incrementX(point_t* point)
         point->x = point->x + 1;
         return point->x;
     }
-    return 0;
+    return -1;
 }
 
 /**************** point_incrementY() ****************/
@@ -102,7 +102,7 @@ int point_incrementY(point_t* point)
         point->y = point->y + 1;
         return point->y;
     }
-    return 0;
+    return -1;
 }
 
 /**************** point_decrementX() ****************/
@@ -113,7 +113,7 @@ int point_decrementX(point_t* point)
         point->x = point->x - 1;
         return point->x;
     }
-    return 0;
+    return -1;
 }
 
 /**************** point_decrementY() ****************/
@@ -124,7 +124,7 @@ int point_decrementY(point_t* point)
         point->y = point->y - 1;
         return point->y;
     }
-    return 0;
+    return -1;
 }
 
 /**************** point_delete() ****************/
