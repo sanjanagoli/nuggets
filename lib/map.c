@@ -158,7 +158,7 @@ set_t* map_getNugLocs(map_t* map) {
 }
 
 /**************** map_getUnconsumedNugLocs ****************/
-/* see map.h for description */ // Do this
+/* see map.h for description */
 set_t* map_getUnconsumedNugLocs(map_t* map) {
   if (map == NULL || map->nuggetLocs == NULL || map->consumedNugs == NULL) {
     return NULL;
@@ -167,6 +167,15 @@ set_t* map_getUnconsumedNugLocs(map_t* map) {
   struct nugLocHelper nLH = {map, unconsumedNugs};
   set_iterate(map->nuggetLocs, &nLH, unconsumedNugLocsHelper);
   return unconsumedNugs;
+}
+
+/**************** map_getConsumedNugLocs ****************/
+/* see map.h for description */
+set_t* map_getConsumedNugLocs(map_t* map) {
+  if (map == NULL) {
+    return NULL;
+  }
+  return map->consumedNugs;
 }
 
 /**************** map_consumeNug ****************/
@@ -178,7 +187,7 @@ int map_consumeNug(map_t* map, int x, int y) {
     sprintf(consumedKey, "%i,%i", x, y);
 
     point_t* p = point_new(x, y); // Make the point
-    set_insert(map->consumedNugs, p);
+    set_insert(map->consumedNugs, consumedKeyPointer, p);
     point_delete(p);
 
     pilesRemaining--;

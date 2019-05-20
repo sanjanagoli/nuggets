@@ -96,9 +96,42 @@ set_t* map_getEmptySpots(map_t* map);
  *   All nuggets on the map are contained within this set, even if they have
  *   been consumed.
  * Caller is responsible for:
- *   Freeing the set that is returned
+ *   Not freeing this set before the map is deleted, since the pointer returned
+ *   refers to the nugget locations held by the map itself.
  */
 set_t* map_getNugLocs(map_t* map);
+
+/**************** map_getUnconsumedNugLocs ****************/
+/* Retrieve a set containing all nugget locations that have not yet been
+ * consumed.
+ *
+ * Caller provides:
+ *   A valid map struct with mapData
+ * We return:
+ *   A pointer to a set that contains all unconsumed nugget locations.
+ *   The keys of the set are meaningless; the items are point structs.
+ * We guarantee:
+ *   All nuggets contained within this set are unconsumed.
+ * Caller is responsible for:
+ *   Freeing the set that is returned.
+ */
+set_t* map_getUnconsumedNugLocs(map_t* map)
+
+/**************** map_getConsumedNugLocs ****************/
+/* Retrieve a set containing all nugget locations that have been consumed.
+ *
+ * Caller provides:
+ *   A valid map struct with mapData
+ * We return:
+ *   A pointer to a set that contains all consumed nugget locations.
+ *   The keys of the set are meaningless; the items are point structs.
+ * We guarantee:
+ *   All nuggets contained within this set are unconsumed.
+ * Caller is responsible for:
+ *   Not freeing this set before the map is deleted, since the pointer returned
+ *   refers to the nugget locations held by the map itself.
+ */
+set_t* map_getConsumedNugLocs(map_t* map)
 
 /**************** map_consumeNug ****************/
 /* Attempt to consume a nugget at a specified location.
