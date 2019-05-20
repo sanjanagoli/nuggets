@@ -56,6 +56,26 @@ char* map_getMapData(map_t* map);
  */
 char map_getChar(map_t* map, int x, int y);
 
+/**************** map_getRows ****************/
+/* Retrieve the number of columns in the map (the maximum x-coordinate)
+*
+* Caller provides:
+*   A valid map struct with mapData and valid x and y positions
+* We return:
+*   The character located at the given coordinates
+*/
+int map_getRows(map_t* map);
+
+/**************** map_getCols ****************/
+/* Retrieve the number of columns in the map (the maximum x-coordinate)
+*
+* Caller provides:
+*   A valid map struct with mapData and valid x and y positions
+* We return:
+*   The character located at the given coordinates
+*/
+int map_getCols(map_t* map);
+
 /**************** map_isEmptySpot ****************/
 /* Returns true if a '.' is located at the given point. Does not take into
  * account player or nugget locations when determing an "empty" spot.

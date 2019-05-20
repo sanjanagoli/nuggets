@@ -146,6 +146,24 @@ char map_getChar(map_t* map, int x, int y) {
   return returnChar;
 }
 
+/**************** map_getRows ****************/
+/* see map.h for description */
+int map_getRows(map_t* map) {
+  if (map == NULL || map-> mapData == NULL) {
+    return 0;
+  }
+  return map->nrows;
+}
+
+/**************** map_getCols ****************/
+/* see map.h for description */
+int map_getCols(map_t* map) {
+  if (map == NULL || map-> mapData == NULL) {
+    return 0;
+  }
+  return map->ncols;
+}
+
 /**************** map_getMapData ****************/
 /* see map.h for description */
 char* map_getMapData(map_t* map) {
