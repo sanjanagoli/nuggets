@@ -1,12 +1,13 @@
-/* 
+/*
  * point.h - header file for 'point' module for nuggets final project
  *
- * Sanjana Goli, May 2019
+ * Sanjana Goli, Daniel DiPietro May 2019
  */
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "../support/set.h"
+#include <stdlib.h>
+#include "../libcs50/set.h"
 
 /* Structure holds int x and int y --> opaque to users of the module */
 typedef struct point point_t;
@@ -14,7 +15,7 @@ typedef struct point point_t;
 /* Create and returns a new point with a given x and y value. Returns a pointer to the point. */
 point_t* point_new(int x, int y);
 
-/*  Retrieve and returns the x-coordinate of the point. 
+/*  Retrieve and returns the x-coordinate of the point.
 */
 int point_getX(point_t* point);
 
@@ -39,8 +40,11 @@ int point_decrementX(point_t* point);
 /* Decrement and returns the y-coordinate of point passed in by 1. */
 int point_decrementY(point_t* point);
 
+/* see point.h for description */
+void point_print(point_t* point, FILE* fp);
+
 /* Frees the memory allocated for point by point_new */
 void point_delete(point_t* point);
 
 /* Given a set of points, determine whether an item appears in the set at least once */
-void point_setHasPoint(point_t* point, set_t *set);
+bool point_setHasPoint(point_t* point, set_t *set);
