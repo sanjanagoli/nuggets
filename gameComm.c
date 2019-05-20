@@ -65,7 +65,6 @@ handleMessage(void * arg, const addr_t from, const char * message)
         printf("reached this piont\n");
     }
     return true;
-
 }
 
 // int randomGen(int seed, int min, int upper)
