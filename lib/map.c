@@ -18,8 +18,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "../support/file.h"
-#include "../support/set.h"
+#include "../libcs50/file.h"
+#include "../libcs50/set.h"
 #include "point.h"
 
 // #############################################################################
