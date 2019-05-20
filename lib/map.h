@@ -4,7 +4,7 @@
  * Description here
  *
  * Author: Dan DiPietro
- * Last Updated: 5/16/2019
+ * Last Updated: 5/19/2019
  */
 
 #ifndef __MAP_H
@@ -21,46 +21,80 @@ typedef struct map map_t;  // opaque to users of the module
 /**************** map_new ****************/
 /*
  */
-map_t* map_new(char* mapData);
+map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
+               int minPiles, int maxPiles);
+
+/**************** map_getChar ****************/
+/*
+*/
+char* map_getMapData(map_t* map);
 
 /**************** map_getChar ****************/
 /*
  */
 char map_getChar(map_t* map, int x, int y);
 
-/**************** map_getNugs ****************/
+/**************** map_isEmptySpot ****************/
 /*
- */
-set_t* map_getNugs(map_t* map);
+*/
+bool map_isEmptySpot(map_t* map, int x, int y);
 
-/**************** map_getPlayeLocs ****************/
+/**************** map_getEmptySpots ****************/
 /*
- */
-set_t* map_getPlayerLocs(map_t* map);
+*/
+set_t* map_getEmptySpots(map_t* map);
+
+
+/**************** map_getNugLocs ****************/
+/*
+*/
+set_t* map_getNugLocs(map_t* map);
+
+/**************** map_consumeNug ****************/
+/*
+*/
+int map_consumeNug(map_t* map, int x, int y);
 
 /**************** map_nuggetPresent ****************/
 /*
- */
+*/
 bool map_nuggetPresent(map_t* map, int x, int y);
 
-/**************** map_consumeNugs ****************/
+/**************** map_nugsRemaining ****************/
 /*
- */
-void map_consumeNug(map_t* map, int x, int y);
+*/
+int map_nugsRemaining(map_t* map);
+
+/**************** map_pilesRemaining ****************/
+/*
+*/
+int map_pilesRemaining(map_t* map);
 
 /**************** map_setNugs ****************/
 /*
 */
-void map_setNugs(map_t* map, set_t* nugs);
+bool map_setNugs(map_t* map, set_t* nugs);
 
-/**************** map_playerPresent ****************/
+/**************** map_genNugs ****************/
 /*
 */
-bool map_playerPresent(map_t* map, int x, int y);
+void map_genNugs(map_t* map, int minPiles, int maxPiles);
 
 /**************** map_getVisibility ****************/
 /*
 */
 set_t* map_getVisibility(map_t* map, int x, int y);
+
+/**************** map_getEmptySpots ****************/
+/*
+*/
+set_t* map_getEmptySpots(map_t* map);
+
+/**************** map_delete ****************/
+/*
+*/
+void map_delete(map_t* map);
+
+
 
 #endif // __MAP_H
