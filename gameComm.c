@@ -41,7 +41,8 @@ int main(const int argc, char * argv[])
             seed = -1;
         }
 
-       // map * map = map_new(argv[1], maxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);   
+       // map * map = map_new(argv[1], maxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
+       mastergame_t* mg = mastergame_new()    
        message_loop(NULL, handleInput, handleMessage);
     }   
 }
@@ -57,14 +58,59 @@ handleMessage(void * arg, const addr_t from, const char * message)
     //&from is pointer to the address of the client that is sending message
     //addr_t *addr = &from;
 
-    int portnumber = message_init(stderr);
-    printf("%d\n", portnumber);
-    printf("dog");
-    if (strcmp(message, "z") == 0) {
-        //message_send(addr, )
-        printf("reached this piont\n");
+    // int portnumber = message_init(stderr);
+    // printf("%d\n", portnumber);
+
+    int numberWords = 0;
+	char delim[] = " ";
+		
+    //copies in order to find how many words are in query without affecting input
+    char *line = malloc((strlen(message)+1)*sizeof(char));
+    strcpy(line, message);
+
+    char *linecopy = malloc((strlen(line)+1)*sizeof(char));
+    strcpy(linecopy, line);
+    char *count = strtok(linecopy, delim);
+
+    //determines how many words are in the query in order to correctly allocate array
+    while(count != NULL)
+    {	
+        count = strtok(NULL, delim);
+        numberWords++;
     }
-    return true;
+    free(linecopy);
+
+    //tokenizes each of the words to input into array
+    char *ptr = strtok(line, delim);
+    int j = 0;
+
+    char *words[numberWords]; 
+    while(ptr != NULL)
+    {	
+        words[j] = ptr;
+        ptr = strtok(NULL, delim);
+        j++;
+    }
+
+
+
+
+    
+    if (strcmp(message, "SPECTATE") == 0)  {
+        printf("message: %s\n", message);
+        return false;
+    } else if (strcmp(words[0], "PLAY") == 0) {
+        printf("message: %s\n", message);
+
+        return false;
+    }
+    else {
+        return true;
+    }
+    
+    //printf("message: %s\n", message);
+    
+    //return true;
 }
 
 // int randomGen(int seed, int min, int upper)
