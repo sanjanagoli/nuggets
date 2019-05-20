@@ -73,7 +73,7 @@ static void pointDeleteHelper(void *item);
 /**************** map_new ****************/
 /* see map.h for description */
 map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
-               int minPiles, int maxPiles) {
+               int minPiles, int maxPiles, int seed) {
   if (mapData == NULL) {
     return NULL;
   }
@@ -113,6 +113,13 @@ map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
   map_t *map = malloc(sizeof(map_t));
   if (map == NULL) {
     return NULL;
+  }
+
+  // Set seed for random generation
+  if (seed != -1 && seed >= 0) {
+    srand(seed);
+  } else {
+    srand(time(NULL));
   }
 
   map->nrows = nrows;

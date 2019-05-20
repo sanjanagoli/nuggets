@@ -23,14 +23,16 @@ typedef struct map map_t;  // opaque to users of the module
  *
  * Caller provides:
  *   Valid map data, a max amount of bytes per message, the amount of gold on the
- *   map, the minimum number of gold piles, and the maximum number of gold piles.
+ *   map, the minimum number of gold piles, the maximum number of gold piles,
+ *   and an unsigned integer to serve as a seed for random number generation. If
+ *   they wish to use a completely random seed, they can pass in -1.
  * We return:
  *   A pointer to new map, which will have nuggets initialized via map_genNugs.
  * Caller is responsible for:
  *   Freeing the map when they are done.
  */
 map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
-               int minPiles, int maxPiles);
+               int minPiles, int maxPiles, int seed);
 
 /**************** map_getMapData ****************/
 /* Retrieve a pointer to mapData
@@ -115,7 +117,7 @@ set_t* map_getNugLocs(map_t* map);
  * Caller is responsible for:
  *   Freeing the set that is returned.
  */
-set_t* map_getUnconsumedNugLocs(map_t* map)
+set_t* map_getUnconsumedNugLocs(map_t* map);
 
 /**************** map_getConsumedNugLocs ****************/
 /* Retrieve a set containing all nugget locations that have been consumed.
@@ -131,7 +133,7 @@ set_t* map_getUnconsumedNugLocs(map_t* map)
  *   Not freeing this set before the map is deleted, since the pointer returned
  *   refers to the nugget locations held by the map itself.
  */
-set_t* map_getConsumedNugLocs(map_t* map)
+set_t* map_getConsumedNugLocs(map_t* map);
 
 /**************** map_consumeNug ****************/
 /* Attempt to consume a nugget at a specified location.
