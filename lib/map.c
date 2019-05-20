@@ -48,7 +48,12 @@ struct ray {
   int xexpand; // Maximum value that ray can expand in its x component direction
   int yexpand; // Maximum value that ray can expand in its y component direction
   bool done; // Whether or not the ray can be expanded anymore.
-}
+};
+
+struct nugLocHelper {
+  map_t* map;
+  set_t* unconsumedNugs;
+};
 
 // #############################################################################
 // Local Functions
@@ -155,7 +160,13 @@ set_t* map_getNugLocs(map_t* map) {
 /**************** map_getUnconsumedNugLocs ****************/
 /* see map.h for description */ // Do this
 set_t* map_getUnconsumedNugLocs(map_t* map) {
-
+  if (map == NULL || map->nuggetLocs == NULL || map->consumedNugs == NULL) {
+    return NULL;
+  }
+  set_t* unconsumedNugs = set_new();
+  struct nugLocHelper nLH = {map, unconsumedNugs};
+  set_iterate(map->nuggetLocs, &nLH, unconsumedNugLocsHelper);
+  return unconsumedNugs;
 }
 
 /**************** map_consumeNug ****************/
@@ -407,7 +418,7 @@ static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPo
 }
 
 /**************** setHasPointWrapper ****************/
-// wrapper for the point_SetHasPoint function that takes an x and y
+// wrapper for the point_setHasPoint function that takes an x and y
 static bool setHasPointWrapper(set_t* set, int x, int y) {
   point_t* p = point_new(x, y);
   bool val = point_setHasPoint(p, set);
@@ -470,5 +481,15 @@ static bool isWallChar(char c) {
 static void pointDeleteHelper(void *item) {
   if (item != NULL) {
     point_delete(item);
+  }
+}
+
+/**************** unconsumedNugLocsHelper ****************/
+// If the nugget passed in by set_iterate hasn't been consumed, it's added to
+// the set.
+static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *item) {
+  struct nugLocHelper *nLH = (struct nugLocHelper*)nugLocHelper;
+  if (point_setHasPoint(nLH->map->consumedNugs, item) == false) {
+    set_insert(nugLocHelper->unconsumedNugs, key, item);
   }
 }
