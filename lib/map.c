@@ -272,7 +272,7 @@ int map_pilesRemaining(map_t* map) {
   return map->pilesRemaining;
 }
 
-/**************** map_genNugs ****************/ // Do seed thing
+/**************** map_genNugs ****************/
 /* see map.h for description */
 static void map_genNugs(map_t* map, int minPiles, int maxPiles) {
   if (map != NULL) {
@@ -305,7 +305,7 @@ static void map_genNugs(map_t* map, int minPiles, int maxPiles) {
   }
 }
 
-/**************** map_getVisibility ****************/ // Do this
+/**************** map_getVisibility ****************/
 /* see map.h for description */
 set_t* map_getVisibility(map_t* map, int x, int y) {
   // Create set for visible points and int for count
