@@ -221,21 +221,9 @@ int map_pilesRemaining(map_t* map) {
   return map->pilesRemaining;
 }
 
-/**************** map_setNugs ****************/
-/* see map.h for description */
-bool map_setNugs(map_t* map, set_t* nugs) {
-  if (map != NULL && nugs != NULL) {
-    if (map->nuggetLocs != NULL) {
-      return false;
-    }
-    map->nuggetLocs = nugs;
-    return true;
-  }
-}
-
 /**************** map_genNugs ****************/ // Do seed thing
 /* see map.h for description */
-void map_genNugs(map_t* map, int minPiles, int maxPiles) {
+static void map_genNugs(map_t* map, int minPiles, int maxPiles) {
   if (map != NULL) {
     int pilesToMake = (rand() % (maxPiles - minPiles + 1)) + minPiles;
     int pilesRemaining = pilesToMake;
@@ -412,7 +400,7 @@ static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPo
 
 }
 
-/**************** expandRay ****************/
+/**************** setHasPointWrapper ****************/
 // wrapper for the point_SetHasPoint function that takes an x and y
 static bool setHasPointWrapper(set_t* set, int x, int y) {
   point_t* p = point_new(x, y);
@@ -421,7 +409,7 @@ static bool setHasPointWrapper(set_t* set, int x, int y) {
   return val;
 }
 
-/**************** expandRay ****************/
+/**************** addAdjacentWalls ****************/
 // allows us to add walls that are adjacent to rays to visiblePoints
 static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, int y) {
   // Characters to add: -+|#
@@ -441,7 +429,7 @@ static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, in
   }
 }
 
-/**************** expandRay ****************/
+/**************** isWallChar ****************/
 // checks if a character is a corner, vertical wall, horizontal wall, or passage
 static bool isWallChar(char c) {
   if (c == '-' || c == '+' || c == '|' || c == '#') {
@@ -450,7 +438,7 @@ static bool isWallChar(char c) {
   return false;
 }
 
-/**************** expandRay ****************/
+/**************** pointDeleteHelper ****************/
 // point_delete that takes a void* so that it can be used for set_delete
 static void pointDeleteHelper(void *item) {
   if (item != NULL) {
