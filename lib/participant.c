@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "../libcs50/set.h"
 #include "participant.h"
 
 void point_checker(void *arg, const char *key, void *item);
@@ -44,11 +45,22 @@ participant_t* participant_new(point_t* p, map_t* map, char id, bool player)
         participant->id = id;
         participant->player = player;
         participant->purse = 0;
-        participant->visiblePoints = map_getVisibility(map, point_getX(participant->location), participant_getY(participant->location));
+        participant->visiblePoints = map_getVisibility(map, point_getX(p), participant_getY(p));
         return participant;
     } else {
         return NULL;
     }    
+}
+
+/**************** participant_getId() ****************/
+/* see participant.h for description */
+char participant_getId(participant_t* part)
+{
+    if (part != NULL) {
+        return part->id;
+    } else {
+        return '\0';
+    }
 }
 
 /**************** participant_getType() ****************/
@@ -127,7 +139,8 @@ bool participant_isVisible(participant_t* part, point_t* p)
     return pointBool->exists;
 }
 
-/* helper function to iterate through set of points visible to participant */
+/*  Input: arg corresponds to pointBool struct, and item corresponds to point in the set
+    Functionality: helper function to iterate through set of points visible to participant */
 void point_checker(void *arg, const char *key, void *item)
 {
     pointBool_t *pointBool = arg;
@@ -160,17 +173,25 @@ void participant_print(participant_t* part, FILE* fp)
     }
 }
 
-/* helper function to print set of points visible to participant */
+/*  Input: takes in void item (that corresponds to point in list), key (corresponding to key in
+    visible points set), and FILE* for clean logging
+    helper function to print set of points visible to participant */
 void print_helper(FILE *fp, const char* key, void* item)
 {
-    point_t *p = item;
-    point_print(p, fp);
-    fprintf(fp, ", ");
+    if (item != NULL) {
+        point_t *p = item;
+        point_print(p, fp);
+        fprintf(fp, ", ");
+    }
+   
 }
 
-/* helper function to free memory of points is set of points visible to participant */
+/*  Input: takes in void item (that corresponds to point in list)
+    Functionality: helper function to free memory of points is set of points visible to participant */
 void delete_helper(void* item)
 {
-    point_t *p = item;
-    point_delete(p);
+    if (item != NULL) {
+        point_t *p = item;
+        point_delete(p);
+    }
 }
