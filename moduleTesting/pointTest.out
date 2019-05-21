@@ -1,0 +1,41 @@
+
+Make a point with values x=5 and y=5.
+Point: (5,5)
+
+Testing point to string
+5,5
+
+Increment the x coordinate.
+Point: (6,5)
+
+Increment the y coordinate.
+Point: (6,6)
+
+Decrement the x coordinate.
+Point: (5,6)
+
+Decrement the y coordinate.
+Point: (5,5)
+
+Set the x-coordinate to 10.
+Point: (10,5)
+
+Set the y-coordinate to 15.
+Point: (10,15)
+
+Print the x-coordinate using point_getX.
+x-value: 10
+
+Print the y-coordinate using point_getY.
+y-value: 15
+
+Make a set of points.
+{(0,0),(3,1),(4,5),(2,4),(1,1),}
+
+Make a new point of (0,0) and check if it's in the set.
+Point is in set.
+
+Check if the point (150, 12) is in the set.
+Point is not in set.
+
+Delete the set and all points.
