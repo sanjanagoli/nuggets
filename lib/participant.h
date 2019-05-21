@@ -14,13 +14,27 @@
 /*  Participant structure holds location, map, id, player type, visiblePoints, and purse. */ 
 typedef struct participant participant_t; 
 
-/*  Input: takes in list of data encapsulated by participant struct
+/*  
+    Input: takes in list of data encapsulated by participant struct
     Functionality: Creates/allocates memory new participant that contains initialize data
     contained in struct.
     Output: returns pointer to participant
 
+    Caller is responsible for calling participant_delete in order to free allocated memory
 */
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player);
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName);
+
+/*
+*   Input: takes in pointer to participant
+*   Output: returns the name of participant if type gamePlayer, else returns NULL
+*/
+char* participant_getRealName(participant_t* part);
+
+/*
+*   Input: takes in pointer to participant
+*   Output: returns the pointer to set of the points that are visible to participant
+*/
+set_t* participant_getVisiblePoints(participant_t* part);
 
 /*  Input: pointer to participant
     Output: returns true if the participant is a gamePlayer and false if spectator

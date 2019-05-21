@@ -25,9 +25,10 @@ typedef struct participant {
     bool player;
     set_t *visiblePoints;
     int purse;
+    char * playerRealName;
 } participant_t;
 
-/* helper struct to iterate through list of points visible to participant */
+/* Helper struct to iterate through list of points visible to participant */
 typedef struct pointBool {
     point_t *p;
     bool exists;
@@ -36,7 +37,7 @@ typedef struct pointBool {
 
 /**************** participant_new() ****************/
 /* see participant.h for description */
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player)
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName)
 {
     if ((p != NULL) && (map != NULL))
         participant_t *participant = count_malloc(sizeof(participant_t));
@@ -46,10 +47,33 @@ participant_t* participant_new(point_t* p, map_t* map, char id, bool player)
         participant->player = player;
         participant->purse = 0;
         participant->visiblePoints = map_getVisibility(map, point_getX(p), participant_getY(p));
+        participant->playerRealName = playerRealName;
         return participant;
     } else {
         return NULL;
     }    
+}
+
+/**************** participant_getRealName() ****************/
+/* see participant.h for description */
+char* participant_getRealName(participant_t* part)
+{
+    if (part != NULL) {
+        return part->playerRealName;
+    } else {
+        return NULL;
+    }
+}
+
+/**************** participant_getVisiblePoints() ****************/
+/* see participant.h for description */
+set_t* participant_getVisiblePoints(participant_t* part)
+{
+    if (part != NULL) {
+        return part->visiblePoints;
+    } else {
+        return NULL;
+    }
 }
 
 /**************** participant_getId() ****************/
