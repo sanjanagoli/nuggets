@@ -98,6 +98,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
     
     if (strcmp(message, "SPECTATE") == 0)  {
         printf("message: %s\n", message);
+        
         return false;
     } else if (strcmp(words[0], "PLAY") == 0) {
         printf("message: %s\n", message);
