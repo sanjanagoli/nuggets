@@ -145,4 +145,4 @@ bool point_setHasPoint(point_t* point, set_t *set);
 *  Caller is responsible for:
 *   free the char* allocated 
 */
-char* pointToString(point_t* point);
+char* point_toString(point_t* point);
