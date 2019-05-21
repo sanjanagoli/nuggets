@@ -6,7 +6,6 @@ Nuggets is a game where players can connect to a remote server and attempt to fi
 
 ### **Data Structures**
 * *struct point*
-* *struct pointHashtable*
 * *struct map*
 * *struct participant*
 * *struct masterGame*
@@ -16,7 +15,7 @@ Nuggets is a game where players can connect to a remote server and attempt to fi
 ```c
 point_t* point_new(int x, int y);
 ```
-Create a new point with a given x and y value. Returns a pointer to the point.
+Create/allocated memory for a new point with a given x and y value. Returns a pointer to the point. 
 
 ```c
 int point_getX(point_t* point);
@@ -59,22 +58,37 @@ int point_decrementY(point_t* point);
 Decrease the y-coordinate of the point by one. Returns the new x-coordinate.  
 
 ```c
+void point_print(point_t* point, FILE *fp);
+```
+Displays the x and y coords to specified file in following format: (x,y) 
+
+```c
 void point_delete(point_t* point);
 ```
 Free the memory associated with a given point.
+
+```c
+bool point_setHasPoint(point_t* point, set_t *set);
+```
+Given a point and a set, determines whether the set contains the point (as a value)
+
+```c
+char* point_toString(point_t* point);
+```
+Given a point, return a concatenated version of x,y coordinates
 
 #### **map**  
 ```c
 map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
                int minPiles, int maxPiles, int seed);
 ```
-Create a new map for a string representing the data of the map. Verifies that the map contains the right amount of lines and characters per line, as well as that the
+Create a new map for a string representing the filepath for the data of the map. Verifies that the map contains the right amount of lines and characters per line, as well as that the
 total amount of bytes in the map falls below the specified maxBytes threshold. The minPiles and maxPiles values are used to generate a set of locations for each nuggetPile. An unsigned integer seed allows for the same sequence of random numbers to be generated, leading to the same piles and pile values; a seed of -1 will result in a random seed.
 
 ```c
 char* map_getMapData(map_t* map);
 ```
-Return a pointer to the string holding the map's data.
+Allocates space that the caller must use to free allocated data.
 
 ```c
 char map_getChar(map_t* map, int x, int y);
@@ -149,44 +163,69 @@ Deletes all memory associated with a map.
 
 #### **participant**  
 ```c
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player);
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char* playerRealName);
 ```
-Create a new participant at a given point with a given player ID.
+Create a new participant at a given point, pointer to the main map, an id that corresponds to its id on the map, a boolean to represent whether the player is a spectator or player, and a playerRealName char* that stores the value the player enters when logging on to the game.
 
 ```c
-bool participant_getType(participant_t* part);
+char* participant_getRealName(participant_t* part);
+```
+Getter method for the participant's name; returns null if participant is spectator
+
+```c
+set_t* participant_getVisiblePoints(participant_t* part);
+```
+Getter method for the participant's visiblePoints; returns all points if spectator
+
+```c
+char participant_getId(participant_t* part);
+```
+returns the participant's character id that is displayed on the map
+
+```c
+bool participant_getType(participant_t* part)
 ```
 Retrieve the type of a given participant: whether or not they are a player or a spectator based on their *bool player* value.
 
 ```c
-point_t* participant_getLoc(point_t* p, map_t* map, char id);
+point_t* participant_getLoc(point_t* p)
 ```
 This will return a pointer to the point representing the location of the participant so that they
 
 ```c
-bool participant_setLoc(participant_t* part, point_t* p);
+bool participant_setLoc(participant_t* part, point_t* p)
 ```
 This will return a pointer to the point representing the location of the participant so that they
 
 ```c
-int participant_getPurse(participant_t* part);
+int participant_getPurse(participant_t* part)
 ```
 Get the purse value of a specified participant.
 
 ```c
-void participant_setPurse(participant_t* part, int value);
+void participant_setPurse(participant_t* part, int value)
 ```
 Set the purse value of a participant to a specified value.
 
 ```c
-int participant_incrementPurse(participant_t* part, int value);
+int participant_incrementPurse(participant_t* part, int value)
 ```
 Increment the purse value of a participant by a specified value.
 
 ```c
-bool participant_isVisible(participant_t* part, point_t* p);
+bool participant_isVisible(participant_t* part, point_t* p)
 ```
 Returns true if a point is visible for a given participant.
+
+```c
+bool participant_delete(participant_t* part)
+```
+Frees memory allocated for participant and its data in participant_new
+
+```c
+void participant_print(participant_t* part, FILE* fp);
+```
+Prints the data encapsulated by the participant struct to a specified file.
 
 #### **masterGame**  
 ```c
@@ -223,7 +262,6 @@ Increases/decreases the point representing a participant's location by a specifi
 bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y);
 ```
 Set the point representing a participant's location to a given x and y.
-
 
 ### **Error Handling and Recovery**
 
