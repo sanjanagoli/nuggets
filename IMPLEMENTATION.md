@@ -273,6 +273,8 @@ Deletes a given game and frees all allocated memory.
 
 ### **Error Handling and Recovery**
 
+In order to handle boundary cases/error, the program will be thoroughly tested with test cases listed below. Additionally, messages will be displayed to server and client when error occurs. 
+
 *Unit testing.* A small test program to test each module to make sure it does what it’s supposed to do. Each major data structure will have a module testing file and *testing.sh* script that ensure that they are entirely functional. We will also use valgrind extensively to ensure that there are no memory leaks.
 
 *Integration testing.* Launch the game server and test it as a whole. In each case, examine the output of the game to ensure that it matches what is expected.
@@ -287,7 +289,7 @@ Deletes a given game and frees all allocated memory.
 
 ### **Persistent Storage**
 
-Any memory that is allocated in the program -- whether in creating each struct (`map`, `masterGame`, `point`, `participant`) will be freed by the program's termination, resulting in no memory leaks. 
+Any memory that is allocated in the program -- whether in creating each struct (`map`, `masterGame`, `point`, `participant`) will be freed when the program terminates, resulting in no memory leaks. 
 
 ### **Security and Privacy Properties**
 
