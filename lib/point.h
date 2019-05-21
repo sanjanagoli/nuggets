@@ -136,3 +136,13 @@ void point_delete(point_t* point);
 *   bool is returned
 */
 bool point_setHasPoint(point_t* point, set_t *set);
+
+/****************** point_setHasPoint ***************/
+/* Caller provides:
+*   a pointer to point
+*  We return:
+*   concatenated version of x and y values in following format: "x,y"
+*  Caller is responsible for:
+*   free the char* allocated 
+*/
+char* pointToString(point_t* point);
