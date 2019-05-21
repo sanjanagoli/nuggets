@@ -18,16 +18,20 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include <time.h>
+#include <limits.h>
 #include "../libcs50/file.h"
 #include "../libcs50/set.h"
 #include "point.h"
+#include "map.h"
 
 // #############################################################################
 // Global Types
 // #############################################################################
 
 typedef struct map {
-  const char* mapData;
+  char* mapData;
   int nrows;
   int ncols;
   set_t* nuggetLocs;
@@ -59,11 +63,12 @@ struct nugLocHelper {
 // Local Functions
 // #############################################################################
 
-static struct ray expandRay(struct ray* r, int* count, set_t* visPoints);
+static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPoints);
 static bool setHasPointWrapper(set_t* set, int x, int y);
 static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, int y);
 static bool isWallChar(char c);
 static void pointDeleteHelper(void *item);
+static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *item);
 
 // #############################################################################
 // Global Functions
@@ -72,7 +77,7 @@ static void pointDeleteHelper(void *item);
 
 /**************** map_new ****************/
 /* see map.h for description */
-map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
+map_t* map_new(char* mapData, int maxBytes, int goldTotal,
                int minPiles, int maxPiles, int seed) {
   if (mapData == NULL) {
     return NULL;
@@ -126,7 +131,7 @@ map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
   map->ncols = ncols;
   map->mapData = mapData;
   map->consumedNugs = consumedNugs;
-  map->nugsRemaining = totalNuggets;
+  map->nugsRemaining = goldTotal;
   map_genNugs(map, minPiles, maxPiles);
 
   return map;
@@ -142,7 +147,7 @@ char map_getChar(map_t* map, int x, int y) {
     return '\0';
   }
   char* mapData = map->mapData;
-  char returnChar = index[map->ncols*y + x];
+  char returnChar = mapData[map->ncols*y + x];
   return returnChar;
 }
 
@@ -214,18 +219,20 @@ int map_consumeNug(map_t* map, int x, int y) {
     point_t* p = point_new(x, y); // Make the point
     set_insert(map->consumedNugs, consumedKeyPointer, p);
     point_delete(p);
+    map->pilesRemaining--;
 
-    pilesRemaining--;
-    if (pilesRemaining == 1) {
-      int valueToReturn = map->nugsRemaining;
+    int valueToReturn;
+    if (map->pilesRemaining == 1) {
+      valueToReturn = map->nugsRemaining;
       map->nugsRemaining = 0;
     } else {
       int extraNugs = map->pilesRemaining - map->nugsRemaining;
-      int valueToReturn = (rand() % (extraNugs) + 1);
+      valueToReturn = (rand() % (extraNugs) + 1);
       map->nugsRemaining -= valueToReturn;
     }
     return valueToReturn;
   }
+  return 0;
 }
 
 /**************** map_nuggetPresent ****************/
@@ -248,7 +255,7 @@ bool map_nuggetPresent(map_t* map, int x, int y) {
 /**************** map_isEmptySpot ****************/
 /* see map.h for description */
 bool map_isEmptySpot(map_t* map, int x, int y) {
-  if (map != NULL && map_getchar(map, x, y) == '.') {
+  if (map != NULL && map_getChar(map, x, y) == '.') {
     return true;
   }
   return false;
@@ -274,30 +281,30 @@ int map_pilesRemaining(map_t* map) {
 
 /**************** map_genNugs ****************/
 /* see map.h for description */
-static void map_genNugs(map_t* map, int minPiles, int maxPiles) {
+void map_genNugs(map_t* map, int minPiles, int maxPiles) {
   if (map != NULL) {
     int pilesToMake = (rand() % (maxPiles - minPiles + 1)) + minPiles;
     int pilesRemaining = pilesToMake;
     char pilesString[4]; // We will be using this as a key so we need a string
     char* pilesPointer = pilesString;
 
-    set_t* nuggetLocs = new_set();
-    if (nuggetLocs != NULL  consumedNugs != NULL) {
-      set_t* consumedNugs = new_set();
+    set_t* nuggetLocs = set_new();
+    if (nuggetLocs != NULL) {
+      set_t* consumedNugs = set_new();
       if (consumedNugs != NULL) {
         map->nuggetLocs = nuggetLocs;
         map->consumedNugs = consumedNugs;
 
-        while (numPiles > 0) {
-          randomX = rand() % map->ncols;
-          randomY = rand() % map->nrows;
+        while (pilesRemaining > 0) {
+          int randomX = rand() % map->ncols;
+          int randomY = rand() % map->nrows;
           if (map_isEmptySpot(map, randomX, randomY) &&
               !map_nuggetPresent(map, randomX, randomY)) {
 
                 sprintf(pilesString, "%i", pilesToMake);
-                point_t* p = new_point(randomX, randomY);
+                point_t* p = point_new(randomX, randomY);
                 set_insert(nuggetLocs, pilesPointer, p);
-                numPiles--;
+                pilesRemaining--;
           }
         }
       }
@@ -318,16 +325,16 @@ set_t* map_getVisibility(map_t* map, int x, int y) {
   // There are only 4 diagonal rays at a given time
   struct ray* rayArray[4];
   // Make each of the starting diagonal rays
-  struct ray ray1 = {x, y, 1, 1, int_max, int_max, false};
+  struct ray ray1 = {x, y, 1, 1, INT_MAX, INT_MAX, false};
   struct ray* ray1P = &ray1;
   rayArray[0] = ray1P;
-  struct ray ray2 = {x, y, 1, -1, int_max, int_max, false};
+  struct ray ray2 = {x, y, 1, -1, INT_MAX, INT_MAX, false};
   struct ray* ray2P = &ray2;
   rayArray[1] = ray2P;
-  struct ray ray3 = {x, y, -1, -1, int_max, int_max, false};
+  struct ray ray3 = {x, y, -1, -1, INT_MAX, INT_MAX, false};
   struct ray* ray3P = &ray3;
   rayArray[2] = ray3P;
-  struct ray ray4 = {x, y, -1, 1, int_max, int_max, false};
+  struct ray ray4 = {x, y, -1, 1, INT_MAX, INT_MAX, false};
   struct ray* ray4P = &ray4;
   rayArray[3] = ray4P;
 
@@ -335,7 +342,7 @@ set_t* map_getVisibility(map_t* map, int x, int y) {
   while (raysDone != 4) {
     raysDone = 0;
     for (int i = 0; i < 4; i++) {
-      if (!rayArray[i].done) {
+      if (!rayArray[i]->done) {
         struct ray* newRay = expandRay(map, rayArray[i], countP, visiblePoints);
         rayArray[i] = newRay;
       } else {
@@ -371,7 +378,7 @@ set_t* map_getEmptySpots(map_t* map) {
     x=0;
     while (*line) {
       if (map_isEmptySpot(map, x, y)) {
-        point_t* p = new_point(x, y);
+        point_t* p = point_new(x, y);
         sprintf(countString, "%i", count);
         set_insert(visiblePoints, countPointer, p);
         count++;
@@ -388,9 +395,9 @@ set_t* map_getEmptySpots(map_t* map) {
 /**************** map_delete ****************/
 /* see map.h for description */
 void map_delete(map_t* map) {
-  set_delete(nuggetLocs, pointDeleteHelper);
-  set_delete(consumedNugs, pointDeleteHelper);
-  free(mapData);
+  set_delete(map->nuggetLocs, pointDeleteHelper);
+  set_delete(map->consumedNugs, pointDeleteHelper);
+  free(map->mapData);
   free(map);
 }
 
@@ -423,7 +430,7 @@ static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPo
       count++;
       sprintf(countString, "%i", *count);
       point_t* p1 = point_new(xval, yval);
-      set_insert(visPoints, countPointer, p2);
+      set_insert(visPoints, countPointer, p1);
     }
     xval += xinc;
   }
@@ -431,7 +438,7 @@ static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPo
   // Expand in y-direction
   while (map_isEmptySpot(map, xval, yval)) {
     if (map_isEmptySpot(map, xval, yval) && !setHasPointWrapper(visPoints, xval, yval)) {
-      addAdjacentWalls(map, visPoints, xval, yval);
+      addAdjacentWalls(map, count, visPoints, xval, yval);
       yexpand++;
       count++;
       sprintf(countString, "%i", *count);
@@ -470,7 +477,7 @@ static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, in
   // Check diagonal corners around the point for '+'
   for (int xinc = -1; xinc <= 1; xinc+=2) {
     for (int yinc = -1; yinc <= 1; yinc+=2) {
-      if (map_getChar(map, x+xinc, y+yinc) == '+') &&
+      if (map_getChar(map, x+xinc, y+yinc) == '+' &&
           setHasPointWrapper(visPoints, x+xinc, y+yinc)) {
         count++;
         sprintf(countString, "%i", *count);
@@ -523,7 +530,7 @@ static void pointDeleteHelper(void *item) {
 // the set.
 static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *item) {
   struct nugLocHelper *nLH = (struct nugLocHelper*)nugLocHelper;
-  if (point_setHasPoint(nLH->map->consumedNugs, item) == false) {
-    set_insert(nugLocHelper->unconsumedNugs, key, item);
+  if (point_setHasPoint(item, nLH->map->consumedNugs) == false) {
+    set_insert(nLH->unconsumedNugs, key, item);
   }
 }

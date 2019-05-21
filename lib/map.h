@@ -31,7 +31,7 @@ typedef struct map map_t;  // opaque to users of the module
  * Caller is responsible for:
  *   Freeing the map when they are done.
  */
-map_t* map_new(const char* mapData, int maxBytes, int goldTotal,
+map_t* map_new(char* mapData, int maxBytes, int goldTotal,
                int minPiles, int maxPiles, int seed);
 
 /**************** map_getMapData ****************/
@@ -57,7 +57,7 @@ char* map_getMapData(map_t* map);
 char map_getChar(map_t* map, int x, int y);
 
 /**************** map_getRows ****************/
-/* Retrieve the number of columns in the map (the maximum x-coordinate)
+/* Retrieve the number of rows in the map (the maximum y-coordinate)
 *
 * Caller provides:
 *   A valid map struct with mapData and valid x and y positions
