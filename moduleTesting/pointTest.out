@@ -2,6 +2,9 @@
 Make a point with values x=5 and y=5.
 Point: (5,5)
 
+Testing point to string
+5,5
+
 Increment the x coordinate.
 Point: (6,5)
 
