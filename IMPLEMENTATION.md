@@ -229,44 +229,96 @@ Prints the data encapsulated by the participant struct to a specified file.
 
 #### **masterGame**  
 ```c
-masterGame_t* masterGame_new(map_t* map);
+masterGame_t * masterGame_new(char * pathname, int seed)
 ```
-Initialize a new game for a given map
+Initialize a new game for a given map (pathname) and seed if not -1
 
 ```c
-bool masterGame_addPart(masterGame_t* mg, participant_t* part);
+bool masterGame_addPart(masterGame_t * mg, char * playerRealName)
 ```
-Add a participant to a new game. Return a bool representing whether or not the participant was successfully added.
+Initializes and adds a participant to a game. Return a bool representing whether or not the participant was successfully added.
+```c
+bool masterGame_removePart(masterGame_t* mg, participant_t* part)
+```
+Removes a participant from a game. Return a bool representing whether or not the participant was successfully removed.
 
 ```c
-bool masterGame_setNugsRemaining(masterGame_t* mg, participant_t* part, int nugs);
+bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
 ```
-Set the number of nuggets remaining.
+Moves a participant by a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Returns a bool representing if move was succesful.
+```c
+bool masterGame_setPartLoc(masterGame_t* mg, char id, int dx, int dy)
+```
+Sets a participants location to a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Returns a bool representing if move was succesful.
 
 ```c
-int masterGame_getNugsRemaining(masterGame_t* mg, participant_t* part);
+int masterGame_getPlayerCount(masterGame_t * mg)
 ```
-Add a participant to a new game. Return a bool representing whether or not the participant was successfully added.
+Returns the number of players currently active in the game.
 
 ```c
-bool masterGame_decrementNugsRemaining(masterGame_t* mg, int value);
+char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
 ```
-Decrease the nuggets remaining by a given value.
+For a given participant returns a string representing the map containing all that should be visible to said player at the current time. (Includes nuggets, other players, previously discovered parts of the map, and newly visible parts of the map).
 
 ```c
-bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy);
+char * masterGame_endGame(masterGame_t * mg)
 ```
-Increases/decreases the point representing a participant's location by a specified change in x and y.
+Returns a game summary containing data about all participants (current and ones who've left) in game. String returned is in tabular format.
 
 ```c
-bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y);
+void masterGame_delete(masterGame_t * mg)
 ```
-Set the point representing a participant's location to a given x and y.
+Deletes a given game and frees all allocated memory.
 
 ### **Error Handling and Recovery**
 
+*Unit testing.* A small test program to test each module to make sure it does what it’s supposed to do. Each major data structure will have a module testing file and *testing.sh* script that ensure that they are entirely functional. We will also use valgrind extensively to ensure that there are no memory leaks.
+
+*Integration testing.* Launch the game server and test it as a whole. In each case, examine the output of the game to ensure that it matches what is expected.
+1. Test with bad connections
+2. Test with invalid commands
+3. Attempt to move outside boundaries
+4. Test with different kinds of maps, including those that have interior walls and those that do not, etc.
+5. Run through different commands for spectators and players
+6. Stress test with large number of players (number of players exceed `MaxPlayers`)
+7. Test with random disconnections of players
+8. Test with switching spots (two players occupy spots that one is attempting to move to)
+
 ### **Persistent Storage**
+
+Any memory that is allocated in the program -- whether in creating each struct (`map`, `masterGame`, `point`, `participant`) will be freed by the program's termination, resulting in no memory leaks. 
 
 ### **Security and Privacy Properties**
 
+Once `gameCom` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must indicate their real name in order to clarify who is performing which action. 
+
 ### **Pseudocode**
+
+* `gameCom` is launched and creates a new blank `masterGame`
+    - In order to call `gameCom` do: `./gameCom map.txt [seed]` which will give port number that allows clients to connect to game created
+    - `main` will verify that the number/type of arguments passed in are valid
+    - `masterGame` is passed the pathname of the `map` data and the seed (-1 if seed is not provided) --> `masterGame` will initialize map if map path is valid
+* `gameCom` will then enter into a loop to receive client commands.
+    - `gameCom` will call `message_loop` from the `message.c` in order to loop through all the messages passed by various clients that connect
+    - `handleMessage` is passed into `message_loop` to deal with various messages, such as `SPECTATE`, `PLAY realname`, and `KEY k`
+        - `handleMessage` will call a helper method called `messageParser` to break down each of the messages and inform `handleMessage` of what action to perform
+    - `handleMessage` will return `false` once the game is over
+    - `gameCom` will send messages to clients (players and spectators) based on moves being made and message received --> It will use functions in `masterGame` to advance the game and obtain relevant data to send to clients.
+* If a client connects, `gameCom` will call the `masterGame_addPart` function in `masterGame` to add a new player.
+    - a new `participant` will be created everytime a client connects to the game through this method
+        - a `participant` is initailized based on its current location, its realName if its a `gamePlayer`, its id as generated by `masterGame`, and other data encapsulated by `participant`
+    -  `gameCom` will alert the client of the outcome of this function.
+* If a player attempts to move, `gameCom` will call `masterGame_movePartLoc` from `masterGame` that attempts to move the player in their desired direction
+* If a client tries to connect but the `MaxPlayers` is reached (determined using `masterGame_getPlayerCount`), then the game rejects the connection and sends `NO` to the client trying to connect
+* If a client of type *spectator* tries to connect and there is already one *spectator*, the existing spectator will be sent a `QUIT` message from the `gameCom`
+* `gameCom` will send an updated map to clients whenever someone connects, quits, or moves. It will call a function in `masterGame` that returns the relevant maps to output for each player. 
+    - each `participant` stores a `set` of `point` that it has seen 
+    - `masterGame` will call a ray cast algorithm called `map_getVisibility` in the `map` module to determine what points are visible and update the `set` of visible `point` for each `participant` accordingly.
+        - the method uses four `ray` structures to expand outward recursively and update visibility/direction based on presence of wall
+    - if a `participant` consumes a nugget (determined by checking if its current location matches the location of a nugget pile using `map_nuggetPresent`), then the `participant` *purse* will be incremented using `participant_incrementPurse` and the number of nuggets available to be consumed will be calculated using `map_consumeNug` from the `map` module
+        - server will send client following message: `GOLD n p r`, which corresponds to nuggets collected, nuggets in purse, and nuggets remaining on map
+    - if a `participant` quits the game, the `masterGame_removePart` method will be called to free memory allocated to the participant and its data
+* This continues until all nuggets have been collected. Once this has occurred, the game is over
+    - `gameCom` sends the relevant game ending messages to each client 
+    - `handleMessage` returns true and `message_loop` terminates
