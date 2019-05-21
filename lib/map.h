@@ -22,10 +22,11 @@ typedef struct map map_t;  // opaque to users of the module
 /* Create a new map struct
  *
  * Caller provides:
- *   Valid map data, a max amount of bytes per message, the amount of gold on the
- *   map, the minimum number of gold piles, the maximum number of gold piles,
- *   and an unsigned integer to serve as a seed for random number generation. If
- *   they wish to use a completely random seed, they can pass in -1.
+ *   Valid map data path, a max amount of bytes per message, the amount of gold
+ *   on the map, the minimum number of gold piles, the maximum number of gold
+ *   piles, and an unsigned integer to serve as a seed for random number
+ *   generation. If they wish to use a completely random seed, they can pass in
+ *   -1.
  * We return:
  *   A pointer to new map, which will have nuggets initialized via map_genNugs.
  * Caller is responsible for:
@@ -40,9 +41,9 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
  * Caller provides:
  *   A valid map struct with mapData
  * We return:
- *   A pointer to the mapData contained within the passed map
+ *   A pointer to a copy of the mapData, which is allocated on each call.
  * Caller is responsible for:
- *   Not modifying map in a way that would render it invalid
+ *   Freeing the returned string
  */
 char* map_getMapData(map_t* map);
 

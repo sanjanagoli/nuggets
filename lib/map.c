@@ -63,9 +63,9 @@ struct nugLocHelper {
 // Local Functions
 // #############################################################################
 
-static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPoints);
+static struct ray* expandRay(map_t* map, struct ray* r, set_t* visPoints);
 static bool setHasPointWrapper(set_t* set, int x, int y);
-static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, int y);
+static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y);
 static bool isWallChar(char c);
 static void pointDeleteHelper(void *item);
 static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *item);
@@ -75,7 +75,7 @@ static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *i
 // See map.h for comments about exported function
 // #############################################################################
 
-/**************** map_new ****************/
+/**************** map_new ****************/ // fix gen nugs
 /* see map.h for description */
 map_t* map_new(char* mapData, int maxBytes, int goldTotal,
                int minPiles, int maxPiles, int seed) {
@@ -94,10 +94,10 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   int nrows = lines_in_file(dataPointer);
   char* cols;
   cols = freadlinep(dataPointer);
-  int ncols = strlen(cols);
+  int ncols = strlen(cols)-1;
   free(cols);
   while ((cols = freadlinep(dataPointer)) != NULL) {
-    if (strlen(cols) != ncols) {
+    if (strlen(cols)-1 != ncols) {
       return NULL;
     }
     free(cols);
@@ -129,10 +129,13 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
 
   map->nrows = nrows;
   map->ncols = ncols;
-  map->mapData = mapData;
+  dataPointer = fopen(mapData, "r");
+  char* mapFromFile = freadfilep(dataPointer);
+  map->mapData = mapFromFile;
+  fclose(dataPointer);
   map->consumedNugs = consumedNugs;
   map->nugsRemaining = goldTotal;
-  map_genNugs(map, minPiles, maxPiles);
+  //map_genNugs(map, minPiles, maxPiles);
 
   return map;
 }
@@ -140,10 +143,10 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
 /**************** map_getChar ****************/
 /* see map.h for description */
 char map_getChar(map_t* map, int x, int y) {
-  if (map != NULL) {
+  if (map == NULL) {
     return '\0';
   }
-  if (x > map->ncols || y > map->nrows || x < 0 || y < 0) {
+  if (x > map->ncols || y >= map->nrows || x < 0 || y < 0) {
     return '\0';
   }
   char* mapData = map->mapData;
@@ -172,10 +175,12 @@ int map_getCols(map_t* map) {
 /**************** map_getMapData ****************/
 /* see map.h for description */
 char* map_getMapData(map_t* map) {
-  if (map == NULL) {
+  if (map == NULL || map->mapData == NULL) {
     return NULL;
   }
-  return map->mapData;
+  char* allocatedMap = malloc(strlen(map->mapData)+1);
+  strcpy(allocatedMap, map->mapData);
+  return allocatedMap;
 }
 
 /**************** map_getNugLocs ****************/
@@ -315,12 +320,11 @@ void map_genNugs(map_t* map, int minPiles, int maxPiles) {
 /**************** map_getVisibility ****************/
 /* see map.h for description */
 set_t* map_getVisibility(map_t* map, int x, int y) {
-  // Create set for visible points and int for count
   set_t* visiblePoints = set_new();
   point_t* startPoint = point_new(x, y);
-  set_insert(visiblePoints, "0", startPoint);
-  int count = 0;
-  int* countP = &count;
+  char* startPointP = point_toString(startPoint);
+  set_insert(visiblePoints, startPointP, startPoint);
+  free(startPointP);
 
   // There are only 4 diagonal rays at a given time
   struct ray* rayArray[4];
@@ -343,7 +347,7 @@ set_t* map_getVisibility(map_t* map, int x, int y) {
     raysDone = 0;
     for (int i = 0; i < 4; i++) {
       if (!rayArray[i]->done) {
-        struct ray* newRay = expandRay(map, rayArray[i], countP, visiblePoints);
+        struct ray* newRay = expandRay(map, rayArray[i], visiblePoints);
         rayArray[i] = newRay;
       } else {
         raysDone++;
@@ -364,10 +368,6 @@ set_t* map_getEmptySpots(map_t* map) {
   if (mapData == NULL) {
     return NULL;
   }
-  // Used to generate keys for set, so we need strings
-  int count = 0;
-  char countString[4];
-  char* countPointer = countString;
 
   int x = 0;
   int y = 0;
@@ -379,9 +379,9 @@ set_t* map_getEmptySpots(map_t* map) {
     while (*line) {
       if (map_isEmptySpot(map, x, y)) {
         point_t* p = point_new(x, y);
-        sprintf(countString, "%i", count);
-        set_insert(visiblePoints, countPointer, p);
-        count++;
+        char* pS = point_toString(p);
+        set_insert(visiblePoints, pS, p);
+        free(pS);
       }
       line++;
       x++;
@@ -407,10 +407,7 @@ void map_delete(map_t* map) {
 
 /**************** expandRay ****************/
 // Expands a ray along its x and y components,
-static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPoints) {
-  char countString[5];
-  char* countPointer = countString;
-
+static struct ray* expandRay(map_t* map, struct ray* r, set_t* visPoints) {
   int xexpand = 0;
   int yexpand = 0;
   int xinc = r->xcomp;
@@ -425,12 +422,12 @@ static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPo
   // Expand in x-direction
   while (map_isEmptySpot(map, xval, yval)) {
     if (map_isEmptySpot(map, xval, yval) && !setHasPointWrapper(visPoints, xval, yval)) {
-      addAdjacentWalls(map, count, visPoints, xval, yval);
+      addAdjacentWalls(map, visPoints, xval, yval);
       xexpand++;
-      count++;
-      sprintf(countString, "%i", *count);
       point_t* p1 = point_new(xval, yval);
-      set_insert(visPoints, countPointer, p1);
+      char* p1S = point_toString(p1);
+      set_insert(visPoints, p1S, p1);
+      free(p1S);
     }
     xval += xinc;
   }
@@ -438,12 +435,12 @@ static struct ray* expandRay(map_t* map, struct ray* r, int* count, set_t* visPo
   // Expand in y-direction
   while (map_isEmptySpot(map, xval, yval)) {
     if (map_isEmptySpot(map, xval, yval) && !setHasPointWrapper(visPoints, xval, yval)) {
-      addAdjacentWalls(map, count, visPoints, xval, yval);
+      addAdjacentWalls(map, visPoints, xval, yval);
       yexpand++;
-      count++;
-      sprintf(countString, "%i", *count);
       point_t* p2 = point_new(xval, yval);
-      set_insert(visPoints, countPointer, p2);
+      char* p2S = point_toString(p2);
+      set_insert(visPoints, p2S, p2);
+      free(p2S);
     }
     yval += yinc;
   }
@@ -469,20 +466,18 @@ static bool setHasPointWrapper(set_t* set, int x, int y) {
 
 /**************** addAdjacentWalls ****************/
 // allows us to add walls that are adjacent to rays to visiblePoints
-static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, int y) {
+static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
   // Characters to add: -+|#
-  char countString[4];
-  char* countPointer = countString;
 
   // Check diagonal corners around the point for '+'
   for (int xinc = -1; xinc <= 1; xinc+=2) {
     for (int yinc = -1; yinc <= 1; yinc+=2) {
       if (map_getChar(map, x+xinc, y+yinc) == '+' &&
           setHasPointWrapper(visPoints, x+xinc, y+yinc)) {
-        count++;
-        sprintf(countString, "%i", *count);
         point_t* p = point_new(x+xinc, y+yinc);
-        set_insert(visPoints, countPointer, p);
+        char* pS = point_toString(p);
+        set_insert(visPoints, pS, p);
+        free(pS);
       }
     }
   }
@@ -491,19 +486,19 @@ static void addAdjacentWalls(map_t* map, int* count, set_t* visPoints, int x, in
   for (int xinc = -1; xinc <= 1; xinc++) {
       if (isWallChar((map_getChar(map, x+xinc, y))) &&
           setHasPointWrapper(visPoints, x+xinc, y)) {
-        count++;
-        sprintf(countString, "%i", *count);
         point_t* p = point_new(x+xinc, y);
-        set_insert(visPoints, countPointer, p);
+        char* pS = point_toString(p);
+        set_insert(visPoints, pS, p);
+        free(pS);
       }
     }
   for (int yinc = -1; yinc <= 1; yinc++) {
     if (isWallChar((map_getChar(map, x, y+yinc))) &&
         setHasPointWrapper(visPoints, x, y+yinc)) {
-      count++;
-      sprintf(countString, "%i", *count);
       point_t* p = point_new(x, y+yinc);
-      set_insert(visPoints, countPointer, p);
+      char* pS = point_toString(p);
+      set_insert(visPoints, pS, p);
+      free(pS);
     }
   }
 }
