@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "./support/message.h"
+#include "./lib/point.h"
 
 /************* global variables ************/
 static const int MaxBytes = 65507;     // max number of bytes in a message
@@ -28,8 +29,7 @@ int randomGen(int seed, int min, int upper);
 /************* main ************/
 int main(const int argc, char * argv[])
 {
-    int portnumber = message_init(stderr);
-    printf("%d\n", portnumber);
+   
 
     if(argc < 2 || argc > 3){
         fprintf(stderr, "usage: ./server map.txt [seed]\n");
@@ -40,10 +40,11 @@ int main(const int argc, char * argv[])
         } else {
             seed = -1;
         }
-
+        int portnumber = message_init(stderr);
+        printf("%d\n", portnumber);
        // map * map = map_new(argv[1], maxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
-       mastergame_t* mg = mastergame_new()    
-       message_loop(NULL, handleInput, handleMessage);
+       //masterGame_t* mg = masterGame_new(argv[1], seed);    
+        message_loop(NULL, handleInput, handleMessage);
     }   
 }
 static bool
@@ -91,10 +92,6 @@ handleMessage(void * arg, const addr_t from, const char * message)
         ptr = strtok(NULL, delim);
         j++;
     }
-
-
-
-
     
     if (strcmp(message, "SPECTATE") == 0)  {
         printf("message: %s\n", message);
@@ -102,23 +99,101 @@ handleMessage(void * arg, const addr_t from, const char * message)
         return false;
     } else if (strcmp(words[0], "PLAY") == 0) {
         printf("message: %s\n", message);
-
+        printf()
+        return false;
+    } else if (strcmp(words[0], "KEY") == 0) {
+        printf("message: %s\n", words[0]);
         return false;
     }
     else {
         return true;
     }
     
+
+    // char** words = splitMessage(message);
+    // if (words != NULL) {
+    //     parseMessage(words);
+    // } else {
+    //     return true;
+    // }
+    
     //printf("message: %s\n", message);
     
     //return true;
 }
 
-// int randomGen(int seed, int min, int upper)
-// {
-//     int result = random(srandom(seed));
-//     while ((result < upper) && (result > min)) {
-//         result = random(srandom(seed));
-//     }
-//     return result;
-// }
+/* Input: takes in a string 
+*  Output: returns a tokenized list of words based on space delimeter
+*  
+*/
+
+static char**
+splitMessage(char* message)
+{
+    int numberWords = 0;
+	char delim[] = " ";
+		
+    //copies in order to find how many words are in query without affecting input
+    char *line = malloc((strlen(message)+1)*sizeof(char));
+    strcpy(line, message);
+
+    char *linecopy = malloc((strlen(line)+1)*sizeof(char));
+    strcpy(linecopy, line);
+    char *count = strtok(linecopy, delim);
+
+    //determines how many words are in the query in order to correctly allocate array
+    while(count != NULL)
+    {	
+        count = strtok(NULL, delim);
+        numberWords++;
+    }
+    free(linecopy);
+
+    //tokenizes each of the words to input into array
+    char *ptr = strtok(line, delim);
+    int j = 0;
+
+    char **words = calloc(numberWords, 100*sizeof(char)); 
+    while(ptr != NULL)
+    {	
+        words[j] = ptr;
+        ptr = strtok(NULL, delim);
+        j++;
+    }
+
+    // there are no commands with more than 4 tokens; therefore, if there are more than 4 tokens, not a valid command
+    if (numberWords <= 4) {
+         return words;
+    } else {
+        return NULL;
+    }
+}  
+
+static void
+parseMessage(masterGame_t *mg, char **words)
+{
+    if (words[0] != NULL) {
+        if (strcmp(words[0], "SPECTATE") == 0)  {
+            printf("message: %s\n", message);
+            return false;
+        } else if (strcmp(words[0], "PLAY") == 0) {
+            printf("message: %s\n", message);
+            if (words[1] != NULL) {
+                masterGame_addPart(mg, words[1]);
+            }
+            return false;
+        } else if (strcmp(words[0], "KEY") == 0) {
+            printf("message: %s\n", words[0]);
+            if (words[1] != NULL) {
+                //actions performed based on keys in requirement spec
+                if (strcmp(words[1], "h") == 0) {
+                    masterGame_movePartLoc(mg, PARTID, )
+                }
+            }
+            return false;
+        }
+    }
+    else {
+        return true;
+    }   
+}
