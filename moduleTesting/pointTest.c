@@ -22,6 +22,12 @@ int main() {
   point_print(p, stdout);
   printf("\n");
 
+  //Testing point_toString
+  printf("\nTesting point to string\n");
+  char* pointString = point_toString(p);
+  printf("%s\n", pointString);
+  free(pointString);
+
   // Increment x the coordinate
   printf("\nIncrement the x coordinate.\n");
   point_incrementX(p);

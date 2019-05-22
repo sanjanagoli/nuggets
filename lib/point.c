@@ -145,6 +145,18 @@ void point_delete(point_t* point)
     }
 }
 
+/**************** point_toString() ****************/
+/* see point.h for description */
+char* point_toString(point_t* point)
+{
+    if (point == NULL) {
+        return NULL;
+    } 
+    char* pointString = malloc((21+2)*sizeof(char));
+    sprintf(pointString, "%d,%d", point->x, point->y);
+    return pointString;
+}
+
 /**************** point_setHasPoint() ****************/
 /* see point.h for description */
 bool point_setHasPoint(point_t* point, set_t* set)
@@ -157,7 +169,13 @@ bool point_setHasPoint(point_t* point, set_t* set)
     return val;
 }
 
-/* takes in boolPoint struct in order to determine if value exists in set*/
+/**************** set_iterateHelper() ****************/
+
+/* Input: takes in parameters as specified by function pointer in set.h for set_iterate
+*  Functionality: for each item in the set, will determine if the x,y coordinates are the same
+*  as the passed in point; updates bool containsValue accordingly
+* 
+*/
 void set_iterateHelper(void *arg, const char *key, void *item)
 {
     boolPoint_t* boolPoint = arg;
@@ -168,6 +186,12 @@ void set_iterateHelper(void *arg, const char *key, void *item)
     }
 }
 
+/**************** boolPoint_new() ****************/
+/* Input: takes in boolean and point to pass into boolPoint struct
+*  Functionality: allocates memory for new boolPoint pointer and initialized containsValue and point;
+*    need to call boolPoint_delete to free memory allocated
+*  Output: returns pointer to new boolPoint with initialized containsValue and point
+*/
 boolPoint_t* boolPoint_new(bool containsValue, point_t* point)
 {
     boolPoint_t* boolPoint = malloc(sizeof(boolPoint_t));
@@ -181,6 +205,10 @@ boolPoint_t* boolPoint_new(bool containsValue, point_t* point)
     return boolPoint;
 }
 
+/**************** boolPoint_delete() ****************/
+/*  Input: takes in boolPoint pointer
+*  Functionality: Frees memory allocated to boolPoint pointer if not null
+*/
 void boolPoint_delete(boolPoint_t* boolPoint)
 {
     if (boolPoint != NULL) {
