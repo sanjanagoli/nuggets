@@ -154,7 +154,7 @@ map_new.
 ```c
 set_t* map_getVisibility(int x, int y);
 ```
-Returns a set containing all the points that are currently visible for specified x and y coordinates via a ray cast algorithm.
+Given a set of x,y coordinates, this method will return a set of points that are visible from the x,y coordinate. Rays are cast at the diagonals of the specified coordinate and have their x and y components expanded until they hit non-empty space. The method uses four `ray` structures to expand outward recursively and update visibility/direction based on presence of walls. 
 
 ```c
 void map_delete(map_t* map);
@@ -275,21 +275,13 @@ Deletes a given game and frees all allocated memory.
 
 In order to handle boundary cases/error, the program will be thoroughly tested with test cases listed below. Additionally, messages will be displayed to server and client when error occurs. 
 
-*Unit testing.* A small test program to test each module to make sure it does what it’s supposed to do. Each major data structure will have a module testing file and *testing.sh* script that ensure that they are entirely functional. We will also use valgrind extensively to ensure that there are no memory leaks.
-
-*Integration testing.* Launch the game server and test it as a whole. In each case, examine the output of the game to ensure that it matches what is expected.
-1. Test with bad connections
-2. Test with invalid commands
-3. Attempt to move outside boundaries
-4. Test with different kinds of maps, including those that have interior walls and those that do not, etc.
-5. Run through different commands for spectators and players
-6. Stress test with large number of players (number of players exceed `MaxPlayers`)
-7. Test with random disconnections of players
-8. Test with switching spots (two players occupy spots that one is attempting to move to)
+Program will free memory allocated with `malloc` or `calloc` even when if/when the program exits for boundary cases. Our modularization allows us to control the game precisely and handle odd user input (as handled/parsed by `gameCom`). An error status would occur if the pathname to file does not exist/is not readable -- the program would exit non-zero. The program would exit with a non-zero status if there were too many (>3) or too few (<2) arguments, with the seed integer being optional. With extensive testing for each modules, it should be straightforward to locate the source of an unexpected errors and handle them accordingly.
 
 ### **Persistent Storage**
 
 Any memory that is allocated in the program -- whether in creating each struct (`map`, `masterGame`, `point`, `participant`) will be freed when the program terminates, resulting in no memory leaks. 
+
+Program does not create any lasting files -- will produce log of player movements if specified by caller. 
 
 ### **Security and Privacy Properties**
 
