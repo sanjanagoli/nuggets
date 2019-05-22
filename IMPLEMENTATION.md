@@ -9,6 +9,7 @@ Nuggets is a game where players can connect to a remote server and attempt to fi
 * *struct map*
 * *struct participant*
 * *struct masterGame*
+* *struct set*
 
 ### **Function Prototypes**
 #### **point**  
