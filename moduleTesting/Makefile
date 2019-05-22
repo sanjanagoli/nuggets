@@ -24,11 +24,11 @@ LLIBS = $V/lib.a
 all: $(PROG) $(PPROG)
 
 # executable depends on object files
-$(PROG): $(OBJS)
+$(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) $(OBJS) $(LLIBS) $(LIBS) -o $(PROG)
 
 # executable depends on object files
-$(PPROG): $(OOBJS)
+$(PPROG): $(OOBJS) $(LLIBS)
 	$(CC) $(CFLAGS) $(OOBJS) $(LLIBS) $(LIBS) -o $(PPROG)
 
 pointTest.o: pointTest.c
@@ -38,7 +38,7 @@ test: $(PROG) $(PPROG)
 	bash -v testing.sh
 
 valgrind: $(PROG)
-	valgrind ./$(PROG);
+	valgrind ./$(PROG); valgrind ./$(PPROG)
 
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
