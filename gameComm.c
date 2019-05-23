@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "./support/message.h"
+#include "./lib/map.h"
+#include "./lib/masterGame.h"
 #include "./lib/point.h"
 
 /************* global variables ************/
@@ -99,7 +101,23 @@ handleMessage(void * arg, const addr_t from, const char * message)
         return false;
     } else if (strcmp(words[0], "PLAY") == 0) {
         printf("message: %s\n", message);
-        printf()
+        if (words[1] != NULL) {
+            if (strcmp(words[0], "h") == 0) {
+
+            } else if (strcmp(words[0], "h") == 0) {
+
+            } else if (strcmp(words[0], "j") == 0) {
+                
+            } else if (strcmp(words[0], "k") == 0) {
+                
+            } else if (strcmp(words[0], "l") == 0) {
+                
+            } else if (strcmp(words[0], "h") == 0) {
+                
+            } else if (strcmp(words[0], "h") == 0) {
+                
+            }
+        }
         return false;
     } else if (strcmp(words[0], "KEY") == 0) {
         printf("message: %s\n", words[0]);
