@@ -3,7 +3,7 @@
 # make sourcelist will provide items in the archive
 # make clean will remove the archive
 
-OBJS = point.o #participant.o map.o
+OBJS = point.o map.o #participant.o
 LIB = lib.a
 
 CFLAGS = -Wall -pedantic -std=c11 -ggdb
@@ -17,7 +17,7 @@ $(LIB): $(OBJS)
 
 # Dependencies: object files depend on header files
 point.o: point.h
-#map.o: map.h
+map.o: map.h
 #participant.o: participant.h
 
 .PHONY: clean sourcelist

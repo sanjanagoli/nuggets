@@ -2,7 +2,7 @@
 ./pointTest &> pointTest.out
 
 # Test map
-#./mapTest &> mapTest.out
+./mapTest &> mapTest.out
 
 # Test participant
 #./participantTest &> participantTest.out
