@@ -1,0 +1,19 @@
+Participant's realName: Player1
+Participant's id: a
+Participan's type (1 if player, 0 if spectator) 1
+
+Participant's current location: (4, 3)
+Participant's new current location (after participant_setLoc): (3, 1)
+
+Participant's initial purse value: 0
+Participant's purse value after setLoc: 3
+Participant's purse value after incrementPurse: 5
+Set of participant's visible points (and other information): 
+
+Participant a: location (3, 1), isPlayer (1), purse (5) 
+Set of Participant a visible points
+{(12,1), ,(12,0), ,(13,1), ,(13,0), ,(11,1), ,(11,0), ,(10,1), ,(10,0), ,(9,1), ,(9,0), ,(8,1), ,(8,0), ,(7,1), ,(7,0), ,(6,1), ,(6,0), ,(3,1), ,(3,0), ,(2,1), ,(2,0), ,(3,2), ,(2,2), ,(5,1), ,(5,0), ,(12,2), ,(13,2), ,(11,2), ,(10,2), ,(9,2), ,(8,2), ,(7,2), ,(6,2), ,(5,2), ,(3,3), ,(3,4), ,(2,3), ,(2,4), ,(4,1), ,(4,0), ,(4,2), ,(12,3), ,(12,4), ,(13,3), ,(13,4), ,(11,3), ,(11,4), ,(10,3), ,(10,4), ,(9,3), ,(9,4), ,(8,3), ,(8,4), ,(7,3), ,(7,4), ,(6,3), ,(6,4), ,(5,3), ,(5,4), ,(4,4), ,(4,3), ,}
+------------------------------- 
+Check if (6,2) is visible to participant from current location (should be true/1): 1
+Check if (13,2) is visible to participant from current location (should be true/1): 1
+Check if (16,9) is visible to participant from current location (should be false/0): 0

@@ -15,7 +15,8 @@
 #include "participant.h"
 
 void point_checker(void *arg, const char *key, void *item);
-void print_helper(void *arg, const char *key, void *item);
+void print_helper(FILE *fp, const char *key, void *item);
+void delete_helper(void *item);
 typedef struct pointBool pointBool_t;
 
 /**************** typedef struct participant participant_t ****************/
@@ -41,17 +42,18 @@ typedef struct pointBool {
 /* see participant.h for description */
 participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName)
 {
-    if ((p != NULL) && (map != NULL))
-        participant_t *participant = count_malloc(sizeof(participant_t));
+    participant_t *participant = malloc(sizeof(participant_t));
+    if ((p != NULL) && (map != NULL)) {
         participant->location = p;
         participant->map = map;
         participant->id = id;
         participant->player = player;
         participant->purse = 0;
-        participant->visiblePoints = map_getVisibility(map, point_getX(p), participant_getY(p));
+        participant->visiblePoints = map_getVisibility(map, point_getX(p), point_getY(p));
         participant->playerRealName = playerRealName;
         return participant;
     } else {
+        free(participant);
         return NULL;
     }    
 }
@@ -162,7 +164,9 @@ bool participant_isVisible(participant_t* part, point_t* p)
     pointBool->exists = false; 
     set_t *visibleSet = part->visiblePoints;
     set_iterate(visibleSet, pointBool, point_checker);
-    return pointBool->exists;
+    bool exist = pointBool->exists;
+    free(pointBool);
+    return exist;
 }
 
 /*  Input: arg corresponds to pointBool struct, and item corresponds to point in the set
@@ -170,8 +174,9 @@ bool participant_isVisible(participant_t* part, point_t* p)
 void point_checker(void *arg, const char *key, void *item)
 {
     pointBool_t *pointBool = arg;
+    point_t* point = item;
     if (item != NULL) {
-        if (pointBool->p == item) {
+        if (point_getX(pointBool->p) == point_getX(point) && point_getY(pointBool->p) == point_getY(point)) {
             pointBool->exists = true;
         } 
     }
@@ -183,7 +188,7 @@ void participant_delete(participant_t* part)
 {
     if (part != NULL) {
         point_delete(part->location);
-        set_delete(visiblePoints, delete_helper);
+        set_delete(part->visiblePoints, delete_helper);
         free(part);
     }
 }
@@ -193,16 +198,17 @@ void participant_delete(participant_t* part)
 void participant_print(participant_t* part, FILE* fp)
 {
     if (part != NULL) {
-        fprintf(fp, "Participant %c: location (%d, %d), isPlayer (%d), purse (%d) ", part->id, point_getX(part->location), point_getY(part->location), part->player, part->purse);
+        fprintf(fp, "Participant %c: location (%d, %d), isPlayer (%d), purse (%d) \n", part->id, point_getX(part->location), point_getY(part->location), part->player, part->purse);
+        fprintf(fp, "Set of Participant %c visible points\n", part->id);
         set_print(part->visiblePoints, fp, print_helper);
-        fprintf(fp, "------------------------------- \n");
+        fprintf(fp, "\n------------------------------- \n");
     }
 }
 
 /*  Input: takes in void item (that corresponds to point in list), key (corresponding to key in
     visible points set), and FILE* for clean logging
     helper function to print set of points visible to participant */
-void print_helper(FILE *fp, const char* key, void* item)
+void print_helper(FILE *fp, const char *key, void *item)
 {
     if (item != NULL) {
         point_t *p = item;
