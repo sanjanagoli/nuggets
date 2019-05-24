@@ -1,1 +1,5 @@
-
+*.o
+mapTest
+pointTest
+masterGameTest
+participantTest

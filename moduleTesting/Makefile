@@ -13,27 +13,40 @@ CFLAGS = -Wall -pedantic -std=c11 -ggdb $(TESTING) -I../lib
 CC = gcc
 MAKE = make
 PROG = pointTest
+PPROG = mapTest
+PPPROG = participantTest
 OBJS = pointTest.o
+OOBJS = mapTest.o
+OOOBJS = participantTest.o
 LIBS = $L/libcs50.a
 LLIBS = $V/lib.a
 
 .PHONY: all test valgrind clean
 
-all: $(PROG)
+all: $(PROG) $(PPROG) $(PPPROG)
 
 # executable depends on object files
-$(PROG): $(OBJS)
+$(PROG): $(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) $(OBJS) $(LLIBS) $(LIBS) -o $(PROG)
 
+# executable depends on object files
+$(PPROG): $(OOBJS) $(LLIBS)
+	$(CC) $(CFLAGS) $(OOBJS) $(LLIBS) $(LIBS) -o $(PPROG)
+
+$(PPPROG): $(OOOBJS) $(LLIBS)
+	$(CC) $(CFLAGS) $(OOOBJS) $(LLIBS) $(LIBS) -o $(PPPROG)
+
 pointTest.o: pointTest.c
+mapTest.o: mapTest.c
+participantTest.o: participantTest.c
 
 test: $(PROG) $(PPROG)
 	bash -v testing.sh
 
 valgrind: $(PROG)
-	valgrind ./$(PROG);
+	valgrind ./$(PROG); valgrind ./$(PPROG)
 
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
 	rm -f *~ *.o *.t
-	rm -f $(PROG)
+	rm -f $(PROG) $(PPROG)
