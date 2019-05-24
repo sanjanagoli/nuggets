@@ -16,7 +16,7 @@
 #include <limits.h>
 #include "masterGame.h"
 #include "../libcs50/set.h"
-#include "../libcs50/file.h"
+#include "../support/file.h"
 #include "../lib/point.h"
 #include "../lib/participant.h"
 #include "../lib/map.h"
@@ -28,12 +28,19 @@ static const int MaxPlayers = 26; // maximum number of players
 static const int GoldTotal = 250; // amount of gold in the game
 static const int GoldMinNumPiles = 10; // minimum number of gold piles
 static const int GoldMaxNumPiles = 30; // maximum number of gold piles
+static const char PlayerSymbolSet[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+static const int GameSummaryLineLength = 29;
+
 
 /**************** local types ****************/
 typedef struct setUpdater {
   set_t * updatedSet;
   participant_t * partToBeRemoved;
 } setUpdater_t;
+
+typedef struct summer {
+  int sum;
+} summer_t;
 
 /**************** global types ****************/
 typedef struct masterGame {
@@ -42,7 +49,6 @@ typedef struct masterGame {
   set_t * removedPlayers;
   bool containsSpectator; 
   int playerCount;
-  char participantSymbolSet[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 } masterGame_t;
 
 /**************** global functions ****************/
@@ -50,7 +56,7 @@ typedef struct masterGame {
 /* see masterGame.h for comments about exported functions */
 
 /**************** local functions ****************/
-static char * readInMap(char * pathname);
+//static char * readInMap(char * pathname);
 static point_t * validPoint(masterGame_t * mg);
 static participant_t * intializeParticipant(masterGame_t * mg, char * playerRealName);
 static void removePartHelper(void *arg, const char *key, void *item);
@@ -58,14 +64,22 @@ static set_t * mergeSets(set_t * setA, set_t * setB);
 static void mergeSetsHelper(void *arg, const char * key, void * item);
 static set_t * createParticipantPointsSet(set_t * participants);
 static void createParticipantPointsSetHelper(void *arg, const char * key, void * item);
-static int getMapIndex(int x, int y);
+static int getMapIndex(int x, int y, int ncols, int nrows);
 static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint);
 static void endGameHelper(void *arg, const char * key, void * item);
+static int setSizeCounter(set_t * set);
+static void setSizeCounterHelper(void *arg, const char * key, void * item);
 static void participantsSetDeleteHelper(void * item);
 
-setUpdater_t * setUpdater_new(set_t * updatedSet, participant_t * partToBeRemoved);
+setUpdater_t * setUpdater_new(participant_t * partToBeRemoved);
 void setUpdater_delete(setUpdater_t * updatedSet, void (*itemdelete)(void *item));
 
+summer_t * summer_new(void);
+void summer_increment(summer_t * summer);
+void summer_delete(summer_t * summer);
+
+static void pointSetPrint(FILE *fp, const char *key, void *item);
+static void participantPrint(FILE *fp, const char *key, void *item);
 /**************** masterGame_new() ****************/
 /* see masterGame.h for description */
 masterGame_t * masterGame_new(char * pathname, int seed)
@@ -77,8 +91,7 @@ masterGame_t * masterGame_new(char * pathname, int seed)
   } 
   else {
     // initialize contents of masterGame structure
-    char * mapData = readInMap(pathname);
-    masterGame->map = map_new(mapData, MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
+    masterGame->map = map_new(pathname, MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
     masterGame->participants = set_new();
     masterGame->removedPlayers = set_new();
     masterGame->containsSpectator = false;
@@ -94,41 +107,41 @@ masterGame_t * masterGame_new(char * pathname, int seed)
  * reads map file into a string
  * returns string containing map data
  */
-static char * readInMap(char * pathname)
+/*static char * readInMap(char * pathname)
 {
   FILE * mapFile;
-  if ((mapFile = fopen(argv[2], "r")) != NULL){
-    char * mapData = freadlineuntil(mapFile, NULL);
+  if ((mapFile = fopen(pathname, "r")) != NULL){
+    char * mapData = freaduntil(mapFile, NULL);
     return mapData;
   }
   else{
     return NULL;
   }
-}
+}*/
 
 /**************** masterGame_addPart() ****************/
 /* see masterGame.h for description */
 char masterGame_addPart(masterGame_t * mg, char * playerRealName)
 {
   if(mg == NULL){
-    return NULL;
+    return '\0';
   }
   participant_t * part = intializeParticipant(mg, playerRealName);
   if(part == NULL){
-    return NULL;
-  } 
-  else{
-    if(playerRealName == NULL){
-      if(mg->containsSpectator){
-        masterGame_removePart(mg, set_find(mg->participants, '@'));
-      }
-      else{
-        mg->containsSpectator = true;
-      }
-    }
-    set_insert(mg->participants, participant_getId(part), part);
-    return participant_getId(part);
+    return '\0';
   }
+  if(playerRealName == NULL){
+    if(mg->containsSpectator){
+      char * spectatorId = (char *)'@';
+      masterGame_removePart(mg, set_find(mg->participants, spectatorId));
+    }
+    else{
+      mg->containsSpectator = true;
+    }
+  }
+  char partId = participant_getId(part);
+  set_insert(mg->participants, &partId, part);
+  return participant_getId(part);
 }
 
 /**************** validPoint ****************/
@@ -139,11 +152,11 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
  */
 static point_t * validPoint(masterGame_t * mg)
 {
-  int x = (rand() % (map_getCols(mg->map) – 0 + 1)) + 0;
-  int y = (rand() % (map_getRows(mg->map) – 0 + 1)) + 0;
+  int x = (rand() % (map_getCols(mg->map) - 0 + 1)) + 0;
+  int y = (rand() % (map_getRows(mg->map) - 0 + 1)) + 0;
   while(!map_isEmptySpot(mg->map, x, y)){
-    x = (rand() % (map_getCols(mg->map) – 0 + 1)) + 0;
-    y = (rand() % (map_getRows(mg->map) – 0 + 1)) + 0;
+    x = (rand() % (map_getCols(mg->map) - 0 + 1)) + 0;
+    y = (rand() % (map_getRows(mg->map) - 0 + 1)) + 0;
   }
   point_t * validCoor = point_new(x, y);
   return validCoor;
@@ -163,24 +176,21 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
 {
   bool isPlayer = true;
   point_t * startLocation = validPoint(mg);
-  char * participantSymbol;
+  char participantSymbol;
   if(playerRealName != NULL){
     if(mg->playerCount > 25){
       return NULL;
     }
     else{
-      participantSymbol = mg->participantSymbolSet[playerCount];
-      mg->playerCount++;
+      participantSymbol = PlayerSymbolSet[mg->playerCount];
+      mg->playerCount = mg->playerCount + 1;
     }
   }
   else{
     participantSymbol = '@';
     isPlayer = false;
   }
-  participant_t * part = participant_new(startLocation, mg->map, *participantSymbol, isPlayer, playerRealName);
-  if(part == NULL){
-    return NULL;
-  }
+  participant_t * part = participant_new(startLocation, mg->map, participantSymbol, isPlayer, playerRealName);
   return part;
 }
 
@@ -194,13 +204,14 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
   else{
     char removedPlayerId = participant_getId(part);
     if(!(removedPlayerId != '@')){
-      set_insert(mg->removedPlayers, removedPlayerId, part);
+      set_insert(mg->removedPlayers, &removedPlayerId, part);
     }
     setUpdater_t * setUpdater = setUpdater_new(part);
     set_iterate(mg->participants, setUpdater, removePartHelper);
     mg->participants = setUpdater->updatedSet;
-    setUpdater_delete(setUpdater);
+    setUpdater_delete(setUpdater, participantsSetDeleteHelper);
     return true;
+  }
 }
 
 /**************** removePartHelper ****************/
@@ -226,7 +237,7 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
     return false;
   }
   else{
-    participant_t * part = set_find(mg->participants, id);
+    participant_t * part = set_find(mg->participants, &id);
     if(part == NULL){
       return false;
     }
@@ -255,7 +266,7 @@ bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y)
     return false;
   }
   else{
-    participant_t * part = set_find(mg->participants, id);
+    participant_t * part = set_find(mg->participants, &id);
     point_t * newLoc = point_new(x, y);
     if(participant_setLoc(part, newLoc)){
       int nugIncrement = map_consumeNug(mg->map, x, y);
@@ -281,12 +292,20 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
 {
   point_t * currLoc = participant_getLoc(part);
   int currX = point_getX(currLoc);
+  printf("x%d\n", currX);
   int currY = point_getY(currLoc);
+  printf("y%d\n", currY);
+  printf("point%s\n", point_toString(currLoc)); 
+  
   set_t * currVisiblePoints = map_getVisibility(mg->map, currX, currY);
+    set_print(currVisiblePoints, stdout, pointSetPrint);
   set_t * prevVisiblePoints = participant_getVisiblePoints(part);
+    set_print(prevVisiblePoints, stdout, pointSetPrint);
   set_t * visiblePoints = mergeSets(currVisiblePoints, prevVisiblePoints);
+    set_print(visiblePoints, stdout, pointSetPrint);
 
   set_t * nuggets = map_getUnconsumedNugLocs(mg->map);
+    set_print(nuggets, stdout, pointSetPrint);
   set_t * participantPoints = createParticipantPointsSet(mg->participants);
 
   int totalMapPoints = map_getRows(mg->map) * (map_getCols(mg->map) + 1);
@@ -294,17 +313,21 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
   for(int x = 0; x < map_getCols(mg->map) + 1; x++){
     for(int y = 0; y < map_getRows(mg->map); y++){
       point_t * currPoint = point_new(x, y);
-      int currIndex = getMapIndex(x, y);
+      int currIndex = getMapIndex(x, y, map_getCols(mg->map), map_getRows(mg->map));
       if(x == map_getCols(mg->map)){
+        printf("newline at the coordinate above\n");
         populatedMap[currIndex] = '\n';        
       }
       else if(point_setHasPoint(currPoint, visiblePoints)){
+        printf("above coordinate is visible\n");
         if(point_setHasPoint(currPoint, nuggets)){
+          printf("nugget at the coordinate above\n"); 
+          printf("*\n");
           populatedMap[currIndex] = '*';
         }
         else if(point_setHasPoint(currPoint, participantPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
-          if(partAtCurrLocation != NULL){
+          if(partIdAtCurrLocation != '\0'){
             populatedMap[currIndex] = partIdAtCurrLocation;          
           }
         }
@@ -335,6 +358,12 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
  */
 static set_t * mergeSets(set_t * setA, set_t * setB)
 {
+  if(setA == NULL){
+    return setB;
+  }
+  if(setB == NULL){
+    return setA;
+  }
   set_t * mergedSet = set_new();
   set_iterate(setA, mergedSet, mergeSetsHelper);
   set_iterate(setB, mergedSet, mergeSetsHelper);
@@ -366,6 +395,7 @@ static set_t * createParticipantPointsSet(set_t * participants)
 {
   set_t * participantPoints = set_new();
   set_iterate(participants, participantPoints, createParticipantPointsSetHelper);
+  return participantPoints;
 }
 
 /**************** createParticipantPointsSetHelper() ****************/
@@ -392,14 +422,9 @@ static void createParticipantPointsSetHelper(void *arg, const char * key, void *
  * this single int represents the equivanlent index of the (x,y) coordinates for a 1D string representation of the map
  * returns said single int
  */
-static int getMapIndex(int x, int y)
+static int getMapIndex(int x, int y, int ncols, int nrows)
 {
-  if(y == 0){
-    return x; 
-  }
-  else{
-    return x * y;
-  }
+  return (x) + (y * ncols);
 }
 
 /**************** getParticipantIdAtPoint() ****************/
@@ -407,18 +432,18 @@ static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint)
 {
   char possibleIdList[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '@'};
   for(int i = 0; i < 27; i++){
-    if(set_find(mg->participants, possibleIdList[i]) != NULL){
+    if(set_find(mg->participants, &possibleIdList[i]) != NULL){
       return possibleIdList[i];
     }
   }
-  return NULL;
+  return '\0';
 }
 
 /**************** masterGame_endGame() ****************/
 /* see masterGame.h for description */
 char * masterGame_endGame(masterGame_t * mg)
 {
-  char * gameSummary;
+  char * gameSummary = malloc(sizeof(char) * (GameSummaryLineLength * (setSizeCounter(mg->participants) - 1 + setSizeCounter(mg->removedPlayers))));
   set_iterate(mg->participants, gameSummary, endGameHelper);
   set_iterate(mg->removedPlayers, gameSummary, endGameHelper);  
   return gameSummary;
@@ -437,13 +462,37 @@ char * masterGame_endGame(masterGame_t * mg)
 static void endGameHelper(void *arg, const char * key, void * item)
 {
   char * gameSummary = arg;
-  if(key != '@'){
-    char line[29];
-    sprintf(line, "%4c%4d%20s\n", key, participant_getPurse(item), participant_getRealName(item));
-    char * formattedLine = (char *)malloc(29);
+  char * spectatorId = (char *)'@';
+  if(key != spectatorId){
+    char line[GameSummaryLineLength];
+    sprintf(line, "%4s%4d%20s\n", key, participant_getPurse(item), participant_getRealName(item));
+    char * formattedLine = (char *)malloc(GameSummaryLineLength);
     strcpy(formattedLine, &line[0]);
     strcat(gameSummary, formattedLine);
   }
+}
+
+/**************** setSizeCounter ****************/
+/*
+ * helper function for counting the size of a set
+ * takes in a set struct
+ * returns number of nodes in set
+ */
+static int setSizeCounter(set_t * set)
+{
+  summer_t * summer = summer_new();
+  set_iterate(set, summer, setSizeCounterHelper);
+  int sum = summer->sum;
+  summer_delete(summer);
+  return sum;
+}
+
+/**************** setSizeCounterHelper ****************/
+// helper function for counterSum
+static void setSizeCounterHelper(void *arg, const char * key, void * item)
+{
+  summer_t * summer = arg;
+  summer_increment(summer);
 }
 
 /**************** masterGame_delete() ****************/
@@ -502,9 +551,70 @@ setUpdater_t * setUpdater_new(participant_t * partToBeRemoved)
  */
 void setUpdater_delete(setUpdater_t * setUpdater, void (*itemdelete)(void *item))
 {
-  if(updatedSet != NULL){
-    participant_delete(setUpdater->partToBeRemoved);
+  if(setUpdater != NULL){
+    (*itemdelete)(setUpdater->partToBeRemoved);
     set_delete(setUpdater->updatedSet, participantsSetDeleteHelper);
     free(setUpdater);
   }
+}
+
+/**************** summer_new ****************/
+// intialzes summer struct
+summer_t * summer_new(void)
+{
+  summer_t * summer = malloc(sizeof(summer_t));
+
+  if (summer == NULL) {
+    return NULL;              // error allocating summer
+  } else {
+    // initialize contents of summer structure
+    summer->sum = 0;
+    return summer;
+  }
+}
+
+/**************** summer_increment ****************/
+// increments value stored in summer struct
+void summer_increment(summer_t * summer)
+{
+  if(summer != NULL){
+    summer->sum++;
+  }
+}
+
+/**************** summer_delete ****************/
+// deletes and frees summer struct
+void summer_delete(summer_t * summer)
+{
+  if(summer != NULL){
+    free(summer);
+  }
+}
+
+map_t * masterGame_getMap(masterGame_t * mg)
+{
+  return mg->map;
+}
+
+void * masterGame_getPart(masterGame_t * mg, char * id)
+{
+  if(mg == NULL){
+    printf("mg null");
+    return NULL;
+  }
+  return set_find(mg->participants, id);
+}
+
+static void pointSetPrint(FILE *fp, const char *key, void *item)
+{
+  printf("key=%s", key);
+}
+
+set_t * masterGame_getActiveParticipants(masterGame_t * mg){
+  return mg->participants;
+}
+
+static void participantPrint(FILE *fp, const char *key, void *item)
+{
+  printf("key=%c item=%s", *key, participant_getRealName(item));
 }

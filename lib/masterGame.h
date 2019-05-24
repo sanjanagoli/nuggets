@@ -26,6 +26,10 @@
 /**************** global types ****************/
 typedef struct masterGame masterGame_t;  // opaque to users of the modules
 
+map_t * masterGame_getMap(masterGame_t * mg); 
+void * masterGame_getPart(masterGame_t * mg, char * id);
+set_t * masterGame_getActiveParticipants(masterGame_t * mg);
+
 /**************** masterGame_new ****************/
 /* initializes masterGame structure
  * takes a struct map containing the offical overall game map
@@ -40,7 +44,7 @@ typedef struct masterGame masterGame_t;  // opaque to users of the modules
  * returns a masterGame data structure
  * returns NULL if there is an issue allocating memory for the masterGame structure
 */
-masterGame_t* masterGame_new(map_t* map);
+masterGame_t * masterGame_new(char * pathname, int seed);
 
 /**************** masterGame_addPart ****************/
 /* takes masterGame data structure and string representing a new participant's real name
@@ -48,17 +52,14 @@ masterGame_t* masterGame_new(map_t* map);
  * 
  * no major assumptions
  * 
- * checks that masterGame is not null 
  * intializes and creates a participant based on the real name string
- * checks that the participant isn't null
  * if partcicipant is of type spectator and another spector already is in the game
  * then, removes current spectator and adds new spectator
  * inserts particpant to particpants set 
  *
- * returns char id if adding the particpant was succesful
- * returns NULL if masterGame is null/ participant is null or if insertion of participant into participants set fails 
+ * returns char id for the intialized particpant
  */
-car masterGame_addPart(masterGame_t* mg, participant_t* part);
+char masterGame_addPart(masterGame_t * mg, char * playerRealName);
 
 /**************** masterGame_removePart ****************/
 /* takes masterGame data structure and struct participant
