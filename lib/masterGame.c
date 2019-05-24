@@ -108,14 +108,14 @@ static char * readInMap(char * pathname)
 
 /**************** masterGame_addPart() ****************/
 /* see masterGame.h for description */
-bool masterGame_addPart(masterGame_t * mg, char * playerRealName)
+char masterGame_addPart(masterGame_t * mg, char * playerRealName)
 {
   if(mg == NULL){
-    return false;
+    return NULL;
   }
   participant_t * part = intializeParticipant(mg, playerRealName);
   if(part == NULL){
-    return false;
+    return NULL;
   } 
   else{
     if(playerRealName == NULL){
@@ -127,7 +127,7 @@ bool masterGame_addPart(masterGame_t * mg, char * playerRealName)
       }
     }
     set_insert(mg->participants, participant_getId(part), part);
-    return true;
+    return participant_getId(part);
   }
 }
 

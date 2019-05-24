@@ -55,10 +55,10 @@ masterGame_t* masterGame_new(map_t* map);
  * then, removes current spectator and adds new spectator
  * inserts particpant to particpants set 
  *
- * returns true if adding the particpant was succesful
- * returns false if masterGame is null/ participant is null or if insertion of participant into participants set fails 
+ * returns char id if adding the particpant was succesful
+ * returns NULL if masterGame is null/ participant is null or if insertion of participant into participants set fails 
  */
-bool masterGame_addPart(masterGame_t* mg, participant_t* part);
+car masterGame_addPart(masterGame_t* mg, participant_t* part);
 
 /**************** masterGame_removePart ****************/
 /* takes masterGame data structure and struct participant
