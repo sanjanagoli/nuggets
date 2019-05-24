@@ -12,6 +12,7 @@
 #include "../libcs50/set.h"
 #include "map.h"
 #include "point.h"
+#include "../support/message.h"
 #include "participant.h"
 
 void point_checker(void *arg, const char *key, void *item);
@@ -29,6 +30,7 @@ typedef struct participant {
     set_t *visiblePoints;
     int purse;
     char * playerRealName;
+    addr_t address;
 } participant_t;
 
 /* Helper struct to iterate through list of points visible to participant */
@@ -40,7 +42,7 @@ typedef struct pointBool {
 
 /**************** participant_new() ****************/
 /* see participant.h for description */
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName)
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName, addr_t address)
 {
     participant_t *participant = malloc(sizeof(participant_t));
     if ((p != NULL) && (map != NULL)) {
@@ -51,12 +53,26 @@ participant_t* participant_new(point_t* p, map_t* map, char id, bool player, cha
         participant->purse = 0;
         participant->visiblePoints = map_getVisibility(map, point_getX(p), point_getY(p));
         participant->playerRealName = playerRealName;
+        participant->address = address;
         return participant;
     } else {
         free(participant);
         return NULL;
     }    
 }
+
+/**************** participant_getAddress() ****************/
+/* see participant.h for description */
+addr_t* participant_getAddress(participant_t* part)
+{
+    if (part != NULL) {
+        return &(part->address);
+    } else {
+        return NULL;
+    }
+    
+}
+
 
 /**************** participant_getRealName() ****************/
 /* see participant.h for description */

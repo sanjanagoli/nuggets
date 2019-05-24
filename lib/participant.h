@@ -24,7 +24,13 @@ typedef struct participant participant_t;
 
     Caller is responsible for calling participant_delete in order to free allocated memory
 */
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName);
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName, addr_t address);
+
+/*
+*   Input: takes in pointer to participant
+*   Output: returns a pointer to the address of participant, else returns NULL
+*/
+addr_t* participant_getAddress(participant_t* part);
 
 /*
 *   Input: takes in pointer to participant
