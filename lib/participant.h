@@ -12,6 +12,7 @@
 #include "../libcs50/set.h"
 #include "map.h"
 #include "point.h"
+#include "../support/message.h"
 
 /*  Participant structure holds location, map, id, player type, visiblePoints, and purse. */ 
 typedef struct participant participant_t; 
