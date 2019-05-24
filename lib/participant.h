@@ -12,7 +12,6 @@
 #include "../libcs50/set.h"
 #include "map.h"
 #include "point.h"
-#include "../support/message.h"
 
 /*  Participant structure holds location, map, id, player type, visiblePoints, and purse. */ 
 typedef struct participant participant_t; 
@@ -25,23 +24,21 @@ typedef struct participant participant_t;
 
     Caller is responsible for calling participant_delete in order to free allocated memory
 */
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName, addr_t address);
-
-/*
-*   Input: takes in pointer to participant
-*   Output: returns a pointer to the address of participant, else returns NULL
-*/
-addr_t* participant_getAddress(participant_t* part);
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName);
 
 /*
 *   Input: takes in pointer to participant
 *   Output: returns the name of participant if type gamePlayer, else returns NULL
+*   
+*   Caller is not responsible for freeing playerRealName - it is handled by participant_delete
 */
 char* participant_getRealName(participant_t* part);
 
 /*
 *   Input: takes in pointer to participant
 *   Output: returns the pointer to set of the points that are visible to participant
+*
+*   Caller is not responsible for freeing set - it is handled by participant_delete   
 */
 set_t* participant_getVisiblePoints(participant_t* part);
 
@@ -57,12 +54,16 @@ bool participant_getType(participant_t* part);
 char participant_getId(participant_t* part);
 
 /*  Input: pointer to participant (part)
-    Output: the point to the current location of the participant 
+*   Output: the point to the current location of the participant 
+*   
+*   Caller is not responsible for for freeing the participant's current location -- handled by participant_delete
 */
 point_t* participant_getLoc(participant_t* part);
 
 /*  Input: pointer to participant (part) and pointer to point (p)
-    Returns true if the participant location was changed (if part is not null), else returns false 
+*   Returns true if the participant location was changed (if part is not null), else returns false 
+*   
+*   Caller is not responsible for freeing the previous location (handled by this method)
 */
 bool participant_setLoc(participant_t* part, point_t* p);
 

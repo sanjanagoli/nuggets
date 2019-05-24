@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include "../libcs50/set.h"
 #include "map.h"
@@ -30,7 +31,6 @@ typedef struct participant {
     set_t *visiblePoints;
     int purse;
     char * playerRealName;
-    addr_t address;
 } participant_t;
 
 /* Helper struct to iterate through list of points visible to participant */
@@ -42,7 +42,7 @@ typedef struct pointBool {
 
 /**************** participant_new() ****************/
 /* see participant.h for description */
-participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName, addr_t address)
+participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName)
 {
     participant_t *participant = malloc(sizeof(participant_t));
     if ((p != NULL) && (map != NULL)) {
@@ -52,27 +52,18 @@ participant_t* participant_new(point_t* p, map_t* map, char id, bool player, cha
         participant->player = player;
         participant->purse = 0;
         participant->visiblePoints = map_getVisibility(map, point_getX(p), point_getY(p));
-        participant->playerRealName = playerRealName;
-        participant->address = address;
+        if (playerRealName != NULL) {
+            participant->playerRealName = malloc((strlen(playerRealName)+1)*sizeof(char));
+            strcpy(participant->playerRealName, playerRealName);
+        } else {
+            participant->playerRealName = playerRealName;
+        }
         return participant;
     } else {
         free(participant);
         return NULL;
     }    
 }
-
-/**************** participant_getAddress() ****************/
-/* see participant.h for description */
-addr_t* participant_getAddress(participant_t* part)
-{
-    if (part != NULL) {
-        return &(part->address);
-    } else {
-        return NULL;
-    }
-    
-}
-
 
 /**************** participant_getRealName() ****************/
 /* see participant.h for description */
@@ -134,6 +125,7 @@ point_t* participant_getLoc(participant_t* part)
 bool participant_setLoc(participant_t* part, point_t* p)
 {
     if (part != NULL) {
+        point_delete(part->location);
         part->location = p;
         return true;
     } else {
@@ -205,6 +197,9 @@ void participant_delete(participant_t* part)
     if (part != NULL) {
         point_delete(part->location);
         set_delete(part->visiblePoints, delete_helper);
+        if (part->playerRealName != NULL) {
+            free(part->playerRealName);
+        }
         free(part);
     }
 }
