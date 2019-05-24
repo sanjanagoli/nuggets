@@ -5,7 +5,7 @@
 ./mapTest &> mapTest.out
 
 # Test participant
-#./participantTest &> participantTest.out
+./participantTest &> participantTest.out
 
 # Test masterGame
 #./masterGameTest &> masterGameTest.out
