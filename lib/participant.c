@@ -13,7 +13,6 @@
 #include "../libcs50/set.h"
 #include "map.h"
 #include "point.h"
-#include "../support/message.h"
 #include "participant.h"
 
 void point_checker(void *arg, const char *key, void *item);
