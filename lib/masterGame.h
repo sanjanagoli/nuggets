@@ -27,7 +27,7 @@
 typedef struct masterGame masterGame_t;  // opaque to users of the modules
 
 map_t * masterGame_getMap(masterGame_t * mg); 
-void * masterGame_getPart(masterGame_t * mg, char * id);
+participant_t * masterGame_getPart(masterGame_t * mg, char id);
 set_t * masterGame_getActiveParticipants(masterGame_t * mg);
 
 /**************** masterGame_new ****************/
