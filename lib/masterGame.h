@@ -219,4 +219,16 @@ participant_t * masterGame_getPart(masterGame_t * mg, char id);
  */
 set_t * masterGame_getActiveParticipants(masterGame_t * mg);
 
+/**************** masterGame_getActiveParticipants ****************/
+/* returns if there is a spectator in the game
+ * 
+ * no major assumtions
+ *
+ * checks if the master game is null
+ * if not returns boolean value that says if there is spectator in the game
+ * also returns false if master game is NULL
+ */
+bool masterGame_getContainsSpectator(masterGame_t * mg);
+
+
 #endif // __masterGame_H
