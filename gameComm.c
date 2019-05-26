@@ -11,9 +11,9 @@
 #include <ctype.h>
 #include "./support/message.h"
 #include "./libcs50/set.h"
-#include "lib/map.h"
-// #include "lib/masterGame.h"
-#include "lib/point.h"
+#include "./lib/map.h"
+#include "./lib/masterGame.h"
+#include "./lib/point.h"
 
 /************* global variables ************/
 static const int MaxBytes = 65507;     // max number of bytes in a message
@@ -29,6 +29,11 @@ typedef struct addressId {
     char id;
 } addressId_t;
 
+typedef struct addrId {
+    addr_t addr;
+    char id;
+} addrId_t;
+
 typedef struct partAndIdHolder {
   char id;
   participant_t * part;
@@ -38,7 +43,9 @@ typedef struct partAndIdHolder {
 typedef struct setMg {
     set_t* set;
     masterGame_t *mg;
-}
+    int index;
+    addrId_t* addrIds[26];
+} setMg_t;
 
 /************* functions ************/
 long int random(void);
@@ -48,8 +55,9 @@ static bool handleInput(void * arg);
 static char findId(set_t* partToAddress, addr_t* addrP);
 void findId_helper(void *arg, const char *key, void *item);
 char* displayMapData(masterGame_t* mg, participant_t* part);
-
-
+void iterate_partToAddress(void *arg, const char* key, void* item);
+void iterate_gameOver(void *arg, const char* key, void *item);
+static addrId_t* addrId_new(char id, addr_t addr);
 int randomGen(int seed, int min, int upper);
 
 /************* main ************/
@@ -67,12 +75,14 @@ int main(const int argc, char * argv[])
         set_t* partToAddress = set_new();
         int portnumber = message_init(stderr);
         printf("%d\n", portnumber);
-        map_t * map = map_new(argv[1], MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
-       //masterGame_t* mg = masterGame_new(argv[1], seed); 
+        //map_t * map = map_new(argv[1], MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
+        masterGame_t* mastergame = masterGame_new(argv[1], seed); 
+        //printf("%d\n", masterGame_getPlayerCount(mg));
 
         setMg_t* setMg = malloc(sizeof(setMg_t));
         setMg->set = partToAddress;
-        setMg->mg = mg;
+        setMg->mg = mastergame;
+        setMg->index = 0;
         message_loop(setMg, handleInput, handleMessage);
     }   
 }
@@ -90,7 +100,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
     setMg_t* setMg = arg;
     masterGame_t* mg = setMg->mg;
-    map_t* map = mg->map;
+    map_t* map = masterGame_getMap(mg);
     set_t* partToAddress = setMg->set;
     
     int numberWords = 0;
@@ -125,16 +135,16 @@ handleMessage(void * arg, const addr_t from, const char * message)
     }
     
 
-    if ( (words[0] != NULL) && (strcmp(words[0], "SPECTATE") == 0) )
+    if ( (words[0] != NULL) && (strcmp(words[0], "SPECTATE") == 0) ) {
         printf("message: %s\n", message);
 
         //send quit message to existing spectator if applicable
-        if (mg->containsSpectator) {
+        if (masterGame_getContainsSpectator(mg)) {
             participant_t* part = masterGame_getPart(mg, '$');
             addressId_t* addrId = malloc(sizeof(addressId_t));
             addrId->id = participant_getId(part);
             set_iterate(partToAddress, addrId, iterate_partToAddress);
-            if (addr->id != '\0') {
+            if (addrId->id != '\0') {
                 addr_t existingSpec = *(addrId->addrP);
                 message_send(existingSpec, "QUIT");
             }
@@ -151,7 +161,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
             message_send(from, gridmessage);
 
             //display message that is sent to clients (spectators can see everything)
-            participant_t* part = masterGame_getPart(id);
+            participant_t* part = masterGame_getPart(mg, id);
             char* mapdata = masterGame_displayMap(mg, part);
             char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
             strcpy(displayMessage, "DISPLAY\n");
@@ -189,6 +199,9 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
                     //Display OK ID when new player effectively connects
                     set_insert(partToAddress, &id, (addr_t *) &from);
+                    // addrId_t* addrId = addrId_new(id, from);
+                    // setMg->addrIds[setMg->index] = addrId;
+                    printf("inserted port: %d\n", ntohs(from.sin_port));
                     char* mes = malloc((strlen("OK L")+1)*sizeof(char)); 
                     strcpy(mes, "OK ");
                     strcat(mes, &id);
@@ -201,19 +214,19 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     message_send(from, gridmessage);
 
                     //display message that is sent to clients (spectators can see everything)
-                    participant_t* part = masterGame_getPart(id);
+                    participant_t* part = masterGame_getPart(mg, id);
                     char* mapdata = displayMapData(mg, part);
-                    message_send(from, displayMessage);
-                    free(displayMessage);
+                    message_send(from, mapdata);
+                    free(mapdata);
 
                 } 
             }
         }
         return false;
     } else if ( (words[0] != NULL) && (strcmp(words[0], "KEY") == 0) ) {
-        printf("message: %s\n", words[0]);
+        
         char id = findId(partToAddress, (addr_t *) &from);
-
+        printf("char id: %c\n", id);
 
         //ensures that making these actions on a valid player (not spectator)
         if (words[1] != NULL && id != '\0') {
@@ -223,7 +236,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 }
             } else if (isalpha(id)) {
                 participant_t* part = masterGame_getPart(mg, id);
-                int currPurse = part->purse;
+                int currPurse = participant_getPurse(part);
                 if (strcmp(words[1], "h") == 0) {
                     masterGame_movePartLoc(mg, id, -1, 0);
                 } else if (strcmp(words[1], "l") == 0) {
@@ -249,9 +262,9 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 }
 
                 //sending updated gold message
-                int collected = (part->purse)-currPurse;
+                int collected = (participant_getPurse(part))-currPurse;
                 char goldMessage[100];
-                sprintf(goldMessage, "GOLD %d %d $d", collected, part->purse, map_nugsRemaining(map));
+                sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
                 message_send(from, goldMessage);
 
                 //sending updated map data
@@ -326,7 +339,7 @@ displayMapData(masterGame_t* mg, participant_t* part)
 }
 
 void
-iterate_partToAddres(void *arg, const char* key, void* item)
+iterate_partToAddress(void *arg, const char* key, void* item)
 {
     addressId_t* addrId = arg;
     char currId = (char) *key;
@@ -361,12 +374,18 @@ iterate_gameOver(void *arg, const char* key, void *item)
 }
 
 static char
+findIdGivenAddress(addr_t addr)
+{
+
+}
+
+static char
 findId(set_t* partToAddress, addr_t* addrP)
 {
     addressId_t* addrId = malloc(sizeof(addressId_t));
     addrId->addrP = addrP;
     addrId->id = '\0';
-    set_iterate(partToAddress, addrP, findId_helper);
+    set_iterate(partToAddress, addrId, findId_helper);
     
     return addrId->id;
 }
@@ -378,7 +397,22 @@ findId_helper(void *arg, const char *key, void *item)
     addr_t* itemAddrP = item;
     if (itemAddrP == addrId->addrP) {
         char id = (char) *key;
+        printf("Here %p\n", item);
+        printf("Here2 %p\n", (void *) addrId->addrP);
         addrId->id = id;
+    }
+}
+
+static addrId_t*
+addrId_new(char id, addr_t addr)
+{
+    addrId_t* addrId = malloc(sizeof(addrId_t));
+    if (addrId != NULL) {
+        addrId->id = id;
+        addrId->addr = addr;
+        return addrId;
+    } else {
+        return NULL;
     }
 }
 
