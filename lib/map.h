@@ -27,6 +27,8 @@ typedef struct map map_t;  // opaque to users of the module
  *   piles, and an unsigned integer to serve as a seed for random number
  *   generation. If they wish to use a completely random seed, they can pass in
  *   -1.
+ *   Note: it is assumed that map will be provided with pile and gold parameters
+ *   that allow for each pile to have 
  * We return:
  *   A pointer to new map, which will have nuggets initialized via map_genNugs.
  * Caller is responsible for:
