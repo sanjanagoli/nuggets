@@ -38,6 +38,7 @@ typedef struct map {
   set_t* consumedNugs;
   int nugsRemaining;
   int pilesRemaining;
+  int avgValue;
 } map_t;
 
 // #############################################################################
@@ -143,6 +144,11 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   map->nuggetLocs = nuggetLocs;
   map->nugsRemaining = goldTotal;
   map_genNugs(map, minPiles, maxPiles);
+  
+  if (map->avgValue < 1) { // Return null and delete
+    map_delete(map);
+    return NULL;
+  }
 
   return map;
 }
@@ -240,7 +246,11 @@ int map_consumeNug(map_t* map, int x, int y) {
       map->nugsRemaining = 0;
     } else {
       int extraNugs = map->pilesRemaining - map->nugsRemaining;
-      valueToReturn = (rand() % (extraNugs/2) + 1);
+      if (extraNugs < map->avgValue*2) {
+        valueToReturn = (rand() % (extraNugs) + 1);
+      } else {
+        valueToReturn = (rand() % (map->avgValue*2) + 1);
+      }
       (map->nugsRemaining) -= valueToReturn;
     }
     return valueToReturn;
@@ -296,6 +306,7 @@ void map_genNugs(map_t* map, int minPiles, int maxPiles) {
   if (map != NULL) {
     int pilesToMake = (rand() % (maxPiles - minPiles + 1)) + minPiles;
     map->pilesRemaining = pilesToMake;
+    int avgValue = map->nugsRemaining / map->pilesRemaining;
     while (pilesToMake > 0) {
       int randomX = rand() % map->ncols;
       int randomY = rand() % map->nrows;
