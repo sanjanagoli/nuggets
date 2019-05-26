@@ -106,9 +106,6 @@ static int setSizeCounter(set_t * set);
 static void setSizeCounterHelper(void *arg, const char * key, void * item);
 static void participantsSetDeleteHelper(void * item);
 static void getPartHelper(void *arg, const char *key, void *item);
-static void pointSetPrint(FILE *fp, const char *key, void *item);
-static void participantPrint(FILE *fp, const char *key, void *item);
-
 
 /**************** setUpdater_new ****************/
 /*
@@ -577,12 +574,12 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
         else if(point_setHasPoint(currPoint, currVisiblePoints) && point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
-            if(partIdAtCurrLocation == participant_getId(part)){
+/*            if(partIdAtCurrLocation == participant_getId(part)){
               populatedMap[currIndex] = '@';
             }
-            else{
+            else{*/
               populatedMap[currIndex] = partIdAtCurrLocation; 
-            }         
+            //}         
           }
         }
         else{
@@ -866,14 +863,4 @@ bool masterGame_getContainsSpectator(masterGame_t * mg)
   else{
     return false;
   }
-}
-
-static void pointSetPrint(FILE *fp, const char *key, void *item)
-{
-  printf("key=%s", key);
-}
-
-static void participantPrint(FILE *fp, const char *key, void *item)
-{
-  printf("key=%c item=%s", *key, participant_getRealName(item));
 }
