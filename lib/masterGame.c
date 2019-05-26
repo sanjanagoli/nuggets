@@ -476,6 +476,12 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
     point_t * newLoc = point_new(newX, newY);
     if(map_getChar(mg->map, newX, newY) == '.' || map_getChar(mg->map, newX, newY) == '#'){
       set_t * playerPoints = createPlayerPointsSet(mg->participants);
+      
+      set_t * newlyVisiblePoints = map_getVisibility(mg->map, newX, newY);
+      set_t * prevVisiblePoints = participant_getVisiblePoints(part);
+      set_t * visiblePoints = mergeSets(currVisiblePoints, prevVisiblePoints);
+      participant_setVisibility(part, visiblePoints);
+
       if(point_setHasPoint(newLoc, playerPoints)){
         char partIdAtCurrLocation = getParticipantIdAtPoint(mg, newLoc);
         if(partIdAtCurrLocation != '\0'){
@@ -511,7 +517,13 @@ bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y)
     participant_t * part = ph->part;
     //partAndIdHolder_delete(ph, participantsSetDeleteHelper);
     point_t * newLoc = point_new(x, y);
-    if(map_getChar(mg->map, x, y) == '.'){
+    if(map_getChar(mg->map, x, y) == '.' ||  map_getChar(mg->map, x, y) == '#'){
+
+      set_t * newlyVisiblePoints = map_getVisibility(mg->map, x, y);
+      set_t * prevVisiblePoints = participant_getVisiblePoints(part);
+      set_t * visiblePoints = mergeSets(currVisiblePoints, prevVisiblePoints);
+      participant_setVisibility(part, visiblePoints);
+
       if(participant_setLoc(part, newLoc)){
         int nugIncrement = map_consumeNug(mg->map, x, y);
         participant_incrementPurse(part, nugIncrement);
