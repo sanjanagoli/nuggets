@@ -474,7 +474,7 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
     int newX = currX + dx;
     int newY = currY + dy;
     point_t * newLoc = point_new(newX, newY);
-    if(map_getChar(mg->map, newX, newY) == '.'){
+    if(map_getChar(mg->map, newX, newY) == '.' || '#'){
       set_t * playerPoints = createPlayerPointsSet(mg->participants);
       if(point_setHasPoint(newLoc, playerPoints)){
         char partIdAtCurrLocation = getParticipantIdAtPoint(mg, newLoc);
