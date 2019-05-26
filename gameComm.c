@@ -58,6 +58,11 @@ char* displayMapData(masterGame_t* mg, participant_t* part);
 void iterate_partToAddress(void *arg, const char* key, void* item);
 void iterate_gameOver(void *arg, const char* key, void *item);
 static addrId_t* addrId_new(char id, addr_t addr);
+char findIdGivenAddress(addr_t addr, setMg_t* setMg);
+void sendMessageToAll(setMg_t* setMg, char* message);
+void displayMapDataToAll(setMg_t* mg);
+void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map);
+void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
 int randomGen(int seed, int min, int upper);
 
 /************* main ************/
@@ -141,12 +146,15 @@ handleMessage(void * arg, const addr_t from, const char * message)
         //send quit message to existing spectator if applicable
         if (masterGame_getContainsSpectator(mg)) {
             participant_t* part = masterGame_getPart(mg, '$');
-            addressId_t* addrId = malloc(sizeof(addressId_t));
-            addrId->id = participant_getId(part);
-            set_iterate(partToAddress, addrId, iterate_partToAddress);
-            if (addrId->id != '\0') {
-                addr_t existingSpec = *(addrId->addrP);
-                message_send(existingSpec, "QUIT");
+            addrId_t* addrId = malloc(sizeof(addressId_t));
+            addrId->id = '$';
+            findAddressGivenId(setMg, addrId);
+
+            //set_iterate(partToAddress, addrId, iterate_partToAddress);
+            if (addrId->id != '\0' && &(addrId->addr) != NULL) {
+                // addr_t existingSpec = *(addrId->addrP);
+                
+                message_send(addrId->addr, "QUIT");
             }
 
 
@@ -155,6 +163,11 @@ handleMessage(void * arg, const addr_t from, const char * message)
         char id = masterGame_addPart(mg, NULL);
 
         if (id != '\0') {
+            addrId_t* addrId = addrId_new(id, from);
+            setMg->addrIds[setMg->index] = addrId;
+            setMg->index = setMg->index+1;
+            printf("inserted port: %d\n", ntohs(from.sin_port));
+
             //server responds to spectator with grid message
             char gridmessage[20];
             sprintf(gridmessage, "GRID %d %d", map_getRows(map), map_getCols(map));
@@ -199,8 +212,9 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
                     //Display OK ID when new player effectively connects
                     set_insert(partToAddress, &id, (addr_t *) &from);
-                    // addrId_t* addrId = addrId_new(id, from);
-                    // setMg->addrIds[setMg->index] = addrId;
+                    addrId_t* addrId = addrId_new(id, from);
+                    setMg->addrIds[setMg->index] = addrId;
+                    setMg->index = setMg->index+1;
                     printf("inserted port: %d\n", ntohs(from.sin_port));
                     char* mes = malloc((strlen("OK L")+1)*sizeof(char)); 
                     strcpy(mes, "OK ");
@@ -214,10 +228,14 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     message_send(from, gridmessage);
 
                     //display message that is sent to clients (spectators can see everything)
-                    participant_t* part = masterGame_getPart(mg, id);
-                    char* mapdata = displayMapData(mg, part);
-                    message_send(from, mapdata);
-                    free(mapdata);
+                    displayGoldDataToAll(setMg, id, 0, map);
+                    
+                    displayMapDataToAll(setMg);
+                    
+                    // participant_t* part = masterGame_getPart(mg, id);
+                    // char* mapdata = displayMapData(mg, part);
+                    // message_send(from, mapdata);
+                    // free(mapdata);
 
                 } 
             }
@@ -225,7 +243,8 @@ handleMessage(void * arg, const addr_t from, const char * message)
         return false;
     } else if ( (words[0] != NULL) && (strcmp(words[0], "KEY") == 0) ) {
         
-        char id = findId(partToAddress, (addr_t *) &from);
+        //char id = findId(partToAddress, (addr_t *) &from);
+        char id = findIdGivenAddress(from, setMg);
         printf("char id: %c\n", id);
 
         //ensures that making these actions on a valid player (not spectator)
@@ -255,22 +274,25 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     masterGame_movePartLoc(mg, id, 1, 1);
                 } else if (strcmp(words[1], "Q") == 0) {
                     message_send(from, "QUIT");
-                    return true;
+                    //return true;
                 } else {
                     message_send(from, "NO...Key is not part of valid set [h, l, j, k, y, u, b, n, Q]\n");
                     return false;
                 }
 
                 //sending updated gold message
-                int collected = (participant_getPurse(part))-currPurse;
-                char goldMessage[100];
-                sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
-                message_send(from, goldMessage);
+                // int collected = (participant_getPurse(part))-currPurse;
+                // char goldMessage[100];
+                // sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
+                displayGoldDataToAll(setMg, id, currPurse, map);
+                //message_send(from, goldMessage);
 
                 //sending updated map data
-                char* displayMessage = displayMapData(mg, part);
-                message_send(from, displayMessage);
-                free(displayMessage);
+                displayMapDataToAll(setMg);
+
+                // char* displayMessage = displayMapData(mg, part);
+                // message_send(from, displayMessage);
+                // free(displayMessage);
                 
             }
         }
@@ -339,6 +361,81 @@ displayMapData(masterGame_t* mg, participant_t* part)
 }
 
 void
+displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map)
+{
+    if (setMg != NULL) {
+        int index = setMg->index;
+        for (int i = 0; i < index; i++) {
+            char id = setMg->addrIds[i]->id;
+            if (id != '\0') {
+                participant_t* part = masterGame_getPart(setMg->mg, id);
+                int collected = (participant_getPurse(part))-currPurse;
+                if (id != givenId) {
+                    collected = 0;
+                }
+                char goldMessage[100];
+                sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
+                addr_t address = setMg->addrIds[i]->addr;
+                message_send(address, goldMessage);
+            }
+        }
+    }
+
+}
+
+
+void
+displayMapDataToAll(setMg_t* setMg)
+{
+    if (setMg != NULL) {
+        int index = setMg->index;
+        for (int i = 0; i < index; i++) {
+            char id = setMg->addrIds[i]->id;
+            if (id != '\0') {
+                participant_t* part = masterGame_getPart(setMg->mg, id);
+                char* mapdata = masterGame_displayMap(setMg->mg, part);
+                char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
+                strcpy(displayMessage, "DISPLAY\n");
+                strcat(displayMessage, mapdata);
+                addr_t address = setMg->addrIds[i]->addr;
+                message_send(address, displayMessage);
+                free(displayMessage);
+            }
+        }
+        
+    }
+}
+
+void
+sendMessageToAll(setMg_t* setMg, char* message)
+{
+    if (message != NULL && setMg != NULL) {
+        int index = setMg->index;
+        for (int i = 0; i < index; i++) {
+            addr_t address = setMg->addrIds[i]->addr;
+            message_send(address, message);
+        }
+    }
+
+}
+
+void
+findAddressGivenId(setMg_t* setMg, addrId_t* addrId)
+{
+    if (setMg != NULL) {
+    int index = setMg->index;
+        for (int i = 0; i < index; i++) {
+            char id = setMg->addrIds[i]->id;
+            if (id != '\0') {
+                if (addrId->id == id) {
+                    addrId->addr = setMg->addrIds[i]->addr;
+                }
+            }
+        }
+    }
+}
+
+void
 iterate_partToAddress(void *arg, const char* key, void* item)
 {
     addressId_t* addrId = arg;
@@ -373,10 +470,19 @@ iterate_gameOver(void *arg, const char* key, void *item)
 
 }
 
-static char
-findIdGivenAddress(addr_t addr)
-{
-
+char
+findIdGivenAddress(addr_t addr, setMg_t* setMg)
+{   
+    int index = setMg->index;
+    int givenPort = ntohs(addr.sin_port);
+    for (int i = 0; i <= index; i++) {
+        addr_t address = setMg->addrIds[i]->addr;
+        int elementPort = ntohs(address.sin_port); 
+        if (givenPort == elementPort) {
+            return setMg->addrIds[i]->id;
+        }
+    }
+    return '\0';
 }
 
 static char
@@ -415,6 +521,14 @@ addrId_new(char id, addr_t addr)
         return NULL;
     }
 }
+
+
+
+
+
+
+
+
 
 /* Input: takes in a string 
 *  Output: returns a tokenized list of words based on space delimeter
