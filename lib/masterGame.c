@@ -577,7 +577,12 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
         else if(point_setHasPoint(currPoint, currVisiblePoints) && point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
-            populatedMap[currIndex] = partIdAtCurrLocation;          
+            if(partIdAtCurrLocation == participant_getId(part)){
+              populatedMap[currIndex] = '@';
+            }
+            else{
+              populatedMap[currIndex] = partIdAtCurrLocation; 
+            }         
           }
         }
         else{
@@ -588,7 +593,8 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
         if(point_setHasPoint(currPoint, nuggets)){
           populatedMap[currIndex] = '*';
         }
-        else if(point_setHasPoint(currPoint, playerPoints)){
+        else if(
+          point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
             populatedMap[currIndex] = partIdAtCurrLocation;          
