@@ -245,7 +245,7 @@ int map_consumeNug(map_t* map, int x, int y) {
       valueToReturn = map->nugsRemaining;
       map->nugsRemaining = 0;
     } else {
-      int extraNugs = map->pilesRemaining - map->nugsRemaining;
+      int extraNugs = map->nugsRemaining - map->pilesRemaining;
       if (extraNugs < map->avgValue*2) {
         valueToReturn = (rand() % (extraNugs) + 1);
       } else {
@@ -306,20 +306,22 @@ void map_genNugs(map_t* map, int minPiles, int maxPiles) {
   if (map != NULL) {
     int pilesToMake = (rand() % (maxPiles - minPiles + 1)) + minPiles;
     map->pilesRemaining = pilesToMake;
-    int avgValue = map->nugsRemaining / map->pilesRemaining;
-    while (pilesToMake > 0) {
-      int randomX = rand() % map->ncols;
-      int randomY = rand() % map->nrows;
-      if (map_isEmptySpot(map, randomX, randomY) &&
-          !map_nuggetPresent(map, randomX, randomY)) {
-            
-        point_t* p = point_new(randomX, randomY);
-        char* pS = point_toString(p);
-        if (set_insert(map->nuggetLocs, pS, p) == false) {
-          point_delete(p);
+    map->avgValue = map->nugsRemaining / map->pilesRemaining;
+    if (map->avgValue >= 1) {      
+      while (pilesToMake > 0) {
+        int randomX = rand() % map->ncols;
+        int randomY = rand() % map->nrows;
+        if (map_isEmptySpot(map, randomX, randomY) &&
+        !map_nuggetPresent(map, randomX, randomY)) {
+          
+          point_t* p = point_new(randomX, randomY);
+          char* pS = point_toString(p);
+          if (set_insert(map->nuggetLocs, pS, p) == false) {
+            point_delete(p);
+          }
+          free(pS);
+          pilesToMake--;
         }
-        free(pS);
-        pilesToMake--;
       }
     }
   }
