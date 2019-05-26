@@ -803,7 +803,7 @@ char * masterGame_endGame(masterGame_t * mg)
 {
   char * gameSummary = malloc(sizeof(char) * (GameSummaryLineLength * (setSizeCounter(mg->participants) - 1 + setSizeCounter(mg->removedPlayers))));
   char line[GameSummaryLineLength];
-  sprintf(line, "\n----Active Participants----\n");
+  sprintf(line, "\n----Active Participants-----\n");
   char * formattedLine = (char *)malloc(GameSummaryLineLength);
   strcpy(formattedLine, &line[0]);
   strcat(gameSummary, formattedLine);
