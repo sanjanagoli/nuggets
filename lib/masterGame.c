@@ -85,6 +85,11 @@ summer_t * summer_new(void);
 void summer_increment(summer_t * summer);
 void summer_delete(summer_t * summer);
 
+idHolder_t * idHolder_new(void);
+void idHolder_assignId(idHolder_t * iH, char id);
+void idHolder_incrementIndex(idHolder_t * iH);
+void idHolder_delete(idHolder_t * iH);
+
 static point_t * validPoint(masterGame_t * mg);
 static void intializeParticipantHelper(void *arg, const char *key, void *item);
 static participant_t * intializeParticipant(masterGame_t * mg, char * playerRealName);
@@ -419,6 +424,9 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
     char removedPlayerId = participant_getId(part);
     if((removedPlayerId != '$')){
       set_insert(mg->removedPlayers, &removedPlayerId, part);
+    }
+    else{
+      mg->containsSpectator = false;
     }
     setUpdater_t * setUpdater = setUpdater_new(part);
     set_iterate(mg->participants, setUpdater, removePartHelper);
@@ -827,6 +835,18 @@ set_t * masterGame_getActiveParticipants(masterGame_t * mg){
   }
   else{
     return NULL;
+  }
+}
+
+/**************** masterGame_getContainsSpectator ****************/
+/* see masterGame.h for description */
+bool masterGame_getContainsSpectator(masterGame_t * mg)
+{
+  if(mg != NULL){
+    return mg->containsSpectator;
+  }
+  else{
+    return false;
   }
 }
 
