@@ -24,11 +24,7 @@
 #include "../lib/map.h"
 
 /**************** global types ****************/
-typedef struct masterGame masterGame_t;  // opaque to users of the modules
-
-map_t * masterGame_getMap(masterGame_t * mg); 
-participant_t * masterGame_getPart(masterGame_t * mg, char id);
-set_t * masterGame_getActiveParticipants(masterGame_t * mg);
+typedef struct masterGame masterGame_t;  //opaque to users of the modules
 
 /**************** masterGame_new ****************/
 /* initializes masterGame structure
@@ -79,7 +75,7 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName);
  * returns true if adding the particpant was succesful
  * returns false if masterGame is null/ participant is null
  */
-bool masterGame_removePart(masterGame_t* mg, participant_t* part);
+bool masterGame_removePart(masterGame_t* mg, participant_t * part);
 
 /**************** masterGame_movePartLoc ****************/
 /* takes masterGame data structure, character id, a change in x, and a change in y
@@ -187,5 +183,40 @@ char * masterGame_endGame(masterGame_t * mg);
  * frees overall structure at end 
  */
 void masterGame_delete(masterGame_t * mg);
+
+/**************** masterGame_getMap ****************/
+/* returns base map stored inside master game
+ * 
+ * no major assumtions
+ *
+ * checks if the master game is null
+ * if not returns the map stored inside master game
+ */
+map_t * masterGame_getMap(masterGame_t * mg); 
+
+/**************** masterGame_getPart ****************/
+/* takes in a master game and id
+ * returns the active participant associated with the given Id
+ * 
+ * assumes the id given is a valid object of type char
+ *
+ * checks if master game is null
+ * iterates through list of participants
+ * if one of the active particiapants has the same id as the given one
+ * returns that participant
+ * returns NULL if master game is null
+ */
+participant_t * masterGame_getPart(masterGame_t * mg, char id);
+
+/**************** masterGame_getActiveParticipants ****************/
+/* returns set of active participants stored inside master game
+ * set of active participants has key = id and item = participant
+ * 
+ * no major assumtions
+ *
+ * checks if the master game is null
+ * if not returns set of active participants stored inside master game
+ */
+set_t * masterGame_getActiveParticipants(masterGame_t * mg);
 
 #endif // __masterGame_H
