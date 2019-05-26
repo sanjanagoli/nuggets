@@ -153,8 +153,9 @@ int masterGame_getPlayerCount(masterGame_t * mg);
  * this function returns as set where key = string representation of point w/ an active participant and item = point
  * loops over every point in map
  * if point is at end of row places a newline symbol there
- * if point is visible and location of nugget places asterisk there
- * if point is visible and location of paricipant then places given particiapnts id there
+ * if point is currently visible and location of nugget places asterisk there
+ * if point is currently visible and location of paricipant then places given particiapnts id there
+ * displays participant itself as an '@' symbol
  * if point is visible and doesn't contain nugget or participant then places base map feature there (wall, hallway, etc.)
  * if point isn't visible places a blank space there
  * 
