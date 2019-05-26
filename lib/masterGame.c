@@ -479,7 +479,7 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
       
       set_t * newlyVisiblePoints = map_getVisibility(mg->map, newX, newY);
       set_t * prevVisiblePoints = participant_getVisiblePoints(part);
-      set_t * visiblePoints = mergeSets(currVisiblePoints, prevVisiblePoints);
+      set_t * visiblePoints = mergeSets(newlyVisiblePoints, prevVisiblePoints);
       participant_setVisibility(part, visiblePoints);
 
       if(point_setHasPoint(newLoc, playerPoints)){
@@ -521,7 +521,7 @@ bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y)
 
       set_t * newlyVisiblePoints = map_getVisibility(mg->map, x, y);
       set_t * prevVisiblePoints = participant_getVisiblePoints(part);
-      set_t * visiblePoints = mergeSets(currVisiblePoints, prevVisiblePoints);
+      set_t * visiblePoints = mergeSets(newlyVisiblePoints, prevVisiblePoints);
       participant_setVisibility(part, visiblePoints);
 
       if(participant_setLoc(part, newLoc)){

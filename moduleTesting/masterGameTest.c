@@ -12,11 +12,9 @@
 #include "../support/file.h"
 #include <string.h>
 
-void pointPrintHelper(FILE *fp, const char *key, void *item);
-static void pointDeleteHelper(void *item);
-static void nuggetsConsumeHelper(void *arg, const char *key, void *item);
+/*static void pointDeleteHelper(void *item);
 static void participantPrint(FILE *fp, const char *key, void *item);
-
+*/
 
 /* **************************************** */
 int main() {
@@ -51,43 +49,43 @@ int main() {
     masterGame_addPart(mg, "turtle");
     masterGame_addPart(mg, "death");
     masterGame_addPart(mg, NULL);
-    printf("\nCheck participant count after adding player (should be 1): %d\n", masterGame_getPlayerCount(mg) );
-    masterGame_movePartLoc(mg, 'b', 2, 0);
-    masterGame_movePartLoc(mg, 'b', 2, 0);
-    participant_t * part = masterGame_getPart(mg, '@');
+    
+    printf("\nCheck participant count after adding player (should be 6): %d\n", masterGame_getPlayerCount(mg) );
 
+    masterGame_movePartLoc(mg, 'b', 3, 0);
+    masterGame_movePartLoc(mg, 'b', 1, 0);
+    
+    printf("\nRemove participant currently with id 'b' from game: %d\n", masterGame_getPlayerCount(mg) );
+    participant_t * partRemove = masterGame_getPart(mg, 'b');
+    if(masterGame_removePart(mg, partRemove)){
+      printf("Removed 'b'.\n");
+    }
+    
+    printf("\nAdd new participant to game with real name 'rat': %d\n", masterGame_getPlayerCount(mg) );
+    char newEntrantId = masterGame_addPart(mg, "rat");
+    printf("The new entrant's ID is(should be 'b'): %c\n", newEntrantId);
+    
+    masterGame_setPartLoc(mg, 'c', 4, 3);
+    participant_t * part = masterGame_getPart(mg, 'c');
     printf("\nDisplay map for paticipant '%c':\n", participant_getId(part));
     printf("%s\n", masterGame_displayMap(mg, part));
+    masterGame_setPartLoc(mg, 'c', 60, 15);
+    participant_t * part2 = masterGame_getPart(mg, 'c');
+    printf("\nDisplay map for paticipant '%c':\n", participant_getId(part));
+    printf("%s\n", masterGame_displayMap(mg, part2));
+    printf("%s\n", masterGame_endGame(mg));
+    
+    masterGame_delete(mg);
   }
 }
 
-void pointPrintHelper(FILE *fp, const char *key, void *item)
-{
-  point_t* p = item;
-  if (item == NULL) {
-    fprintf(fp, "(null)");
-  }
-  else {
-    point_print(p, stdout);
-  }
-}
-
-static void pointDeleteHelper(void *item) {
+/*static void pointDeleteHelper(void *item) {
   if (item != NULL) {
     point_delete(item);
   }
 }
 
-static void nuggetsConsumeHelper(void *arg, const char *key, void *item) {
-  map_t* map = arg;
-  int value = map_consumeNug(map, point_getX(item), point_getY(item));
-  printf("Consumed pile located at: (%i, %i)\n", point_getX(item), point_getY(item));
-  printf("\tValue of pile: %i\n", value);
-  printf("\tPiles remaining: %i\n", map_pilesRemaining(map));
-  printf("\tNuggets remaining: %i\n", map_nugsRemaining(map));
-}
-
 static void participantPrint(FILE *fp, const char *key, void *item)
 {
   printf("key=%c item=%s", *key, participant_getRealName(item));
-}
+}*/
