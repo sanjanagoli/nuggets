@@ -100,3 +100,5 @@ void participant_delete(participant_t* part);
     Functionality/output: Prints the data encapsulated by participant to file 
 */
 void participant_print(participant_t *part, FILE *fp);
+
+void participant_setVisibility(participant_t * part, set_t * visiblePoints);

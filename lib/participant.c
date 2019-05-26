@@ -237,3 +237,10 @@ void delete_helper(void* item)
         point_delete(p);
     }
 }
+
+/**************** participant_setVisibility() ****************/
+/* see participant.h for description */
+void participant_setVisibility(participant_t * part, set_t * visiblePoints)
+{
+    part->visiblePoints = visiblePoints;
+}
