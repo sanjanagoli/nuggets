@@ -15,15 +15,17 @@ MAKE = make
 PROG = pointTest
 PPROG = mapTest
 PPPROG = participantTest
+PPPPROG = masterGameTest
 OBJS = pointTest.o
 OOBJS = mapTest.o
 OOOBJS = participantTest.o
+OOOOBJS = masterGameTest.o
 LIBS = $L/libcs50.a
 LLIBS = $V/lib.a
 
 .PHONY: all test valgrind clean
 
-all: $(PROG) $(PPROG) $(PPPROG)
+all: $(PROG) $(PPROG) $(PPPROG) $(PPPPROG)
 
 # executable depends on object files
 $(PROG): $(OBJS) $(LIBS)
@@ -36,9 +38,13 @@ $(PPROG): $(OOBJS) $(LLIBS)
 $(PPPROG): $(OOOBJS) $(LLIBS)
 	$(CC) $(CFLAGS) $(OOOBJS) $(LLIBS) $(LIBS) -o $(PPPROG)
 
+$(PPPPROG): $(OOOOBJS) $(LLIBS)
+	$(CC) $(CFLAGS) $(OOOOBJS) $(LLIBS) $(LIBS) -o $(PPPPROG)
+
 pointTest.o: pointTest.c
 mapTest.o: mapTest.c
 participantTest.o: participantTest.c
+masterGameTest.o: masterGameTest.c
 
 test: $(PROG) $(PPROG)
 	bash -v testing.sh
