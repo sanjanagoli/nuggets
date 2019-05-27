@@ -398,10 +398,11 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
 static point_t * validPoint(masterGame_t * mg)
 {
   set_t * nuggets = map_getUnconsumedNugLocs(mg->map);
+  set_t * playerPoints = createPlayerPointsSet(mg->participants);
   int x = (rand() % (map_getCols(mg->map) - 0 + 1)) + 0;
   int y = (rand() % (map_getRows(mg->map) - 0 + 1)) + 0;
   point_t * currPoint = point_new(x, y);
-  while((point_setHasPoint(currPoint, nuggets) || !map_isEmptySpot(mg->map, x, y))){
+  while((point_setHasPoint(currPoint, nuggets)) || !map_isEmptySpot(mg->map, x, y) || point_setHasPoint(currPoint, playerPoints)){
     x = (rand() % (map_getCols(mg->map) - 0 + 1)) + 0;
     y = (rand() % (map_getRows(mg->map) - 0 + 1)) + 0;
     point_setX(currPoint, x);
@@ -430,7 +431,8 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
       return NULL;
     }
     else{
-      idHolder_t * iH = idHolder_new();
+      participantSymbol = PlayerSymbolSet[mg->playerCount];
+     /* idHolder_t * iH = idHolder_new();
       int beforeValue;
       int afterValue;
       for(int i = 0; i < 26 && participantSymbol == '\0'; i++){
@@ -441,7 +443,7 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
         if(beforeValue == afterValue){
           participantSymbol = iH->id;
         }
-      }
+      }*/
       mg->playerCount = mg->playerCount + 1;
     }
   }
@@ -622,12 +624,12 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
     for(int y = 0; y < map_getRows(mg->map); y++){
       point_t * currPoint = point_new(x, y);
       
-      printf("%s:    ", point_toString(currPoint));
+      //printf("%s:    ", point_toString(currPoint));
       
       int currIndex = getMapIndex(x, y, map_getCols(mg->map), map_getRows(mg->map));
       if(x == map_getCols(mg->map)){
         populatedMap[currIndex] = '\n'; 
-        printf("placed here: [newline]\n");
+        //printf("placed here: [newline]\n");
       }
       else if(point_setHasPoint(currPoint, visiblePoints) && participant_getId(part) != '$'){
         if(point_setHasPoint(currPoint, currVisiblePoints) && point_setHasPoint(currPoint, nuggets)){
@@ -651,24 +653,24 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
       else if(participant_getId(part) == '$'){
         if(point_setHasPoint(currPoint, nuggets)){
           populatedMap[currIndex] = '*';
-          printf("placed here: *\n");
+          //printf("placed here: *\n");
         }
         else if(
           point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
             populatedMap[currIndex] = partIdAtCurrLocation;  
-            printf("placed here: %c\n", partIdAtCurrLocation);
+           // printf("placed here: %c\n", partIdAtCurrLocation);
           }
         }
         else{
           populatedMap[currIndex] = map_getChar(mg->map, x, y);
-          printf("placed here (from getChar): %c\n", map_getChar(mg->map, x, y));
+          //printf("placed here (from getChar): %c\n", map_getChar(mg->map, x, y));
         }
       }
       else{
         populatedMap[currIndex] = ' ';
-        printf("placed here: ' '\n");
+       // printf("placed here: ' '\n");
       }
       
     }

@@ -37,16 +37,34 @@ int main() {
       free(returnedData);
     }
 
-    printf("\nAdd seven participants (six players + one spectator) to a master game:\n");
-    masterGame_addPart(mg, "cow");
-    masterGame_addPart(mg, "dog");
+    printf("\nAdd 25 participants (24 players + 1 spectator) to a master game\n");
+    masterGame_addPart(mg, "apple");
+    masterGame_addPart(mg, "bat");
     masterGame_addPart(mg, "cat");
-    masterGame_addPart(mg, "mouse");
-    masterGame_addPart(mg, "turtle");
-    masterGame_addPart(mg, "death");
+    masterGame_addPart(mg, "dog");
+    masterGame_addPart(mg, "elephant");
+    masterGame_addPart(mg, "fish");
+    masterGame_addPart(mg, "gnat");
+    masterGame_addPart(mg, "hat");
+    masterGame_addPart(mg, "indian");
+    masterGame_addPart(mg, "john");
+    masterGame_addPart(mg, "kale");
+    masterGame_addPart(mg, "lima");
+    masterGame_addPart(mg, "money");
+    masterGame_addPart(mg, "nap");
+    masterGame_addPart(mg, "office");
+    masterGame_addPart(mg, "phone");
+    masterGame_addPart(mg, "quiet");
+    masterGame_addPart(mg, "rat");
+    masterGame_addPart(mg, "sound");
+    masterGame_addPart(mg, "tv");
+    masterGame_addPart(mg, "under");
+    masterGame_addPart(mg, "vent");
+    masterGame_addPart(mg, "water");
+    masterGame_addPart(mg, "xylophone");
     masterGame_addPart(mg, NULL);
     
-    printf("\nCheck player count after adding players (should be 6): %d\n", masterGame_getPlayerCount(mg) );
+    printf("\nCheck player count after adding players (should be 24): %d\n", masterGame_getPlayerCount(mg) );
 
     printf("\nDisplay map for spectator:\n");
     printf("%s\n", masterGame_displayMap(mg, masterGame_getPart(mg, '$')));
@@ -65,10 +83,27 @@ int main() {
     printf("\nDisplay map after removing 'b':\n");
     printf("%s\n", masterGame_displayMap(mg, masterGame_getPart(mg, '$')));
     
-    printf("\nAdd new participant to game with real name 'rat': %d\n", masterGame_getPlayerCount(mg) );
-    char newEntrantId = masterGame_addPart(mg, "rat");
-    printf("The new entrant's ID is(should be 'b'): %c\n", newEntrantId);
-    printf("\nDisplay map after adding in new 'b':\n");
+    printf("\nAdd new participant to game with real name 'young'.\n");
+    char newEntrantId = masterGame_addPart(mg, "young");
+    printf("The new entrant's ID is (should be 'y'): %c\n", newEntrantId);
+    printf("\nDisplay map after adding in new 'y':\n");
+    printf("%s\n", masterGame_displayMap(mg, masterGame_getPart(mg, '$')));
+
+    printf("\nAdd new participant to game with real name that is same as other real name in use ('apple')\n");
+    char newEntrantId2 = masterGame_addPart(mg, "apple");
+    printf("The new entrant's ID is (should be 'z'): %c\n", newEntrantId2);
+    printf("\nDisplay map after adding in new 'z':\n");
+    printf("%s\n", masterGame_displayMap(mg, masterGame_getPart(mg, '$')));
+
+    printf("\nCurrent player count: %d\n", masterGame_getPlayerCount(mg) );
+    printf("\nAdd new player to game beyond capacity\n");
+    char failedEntrant = masterGame_addPart(mg, "rat");
+    printf("\nDisplay map after attempting to add in new participant. (No participant should have been added):\n");
+    printf("%s\n", masterGame_displayMap(mg, masterGame_getPart(mg, '$')));
+
+    printf("\nAdd spectator to replace current spectator\n");
+    masterGame_addPart(mg, NULL);
+    printf("\nDisplay map from new spectator's viewpoint:\n");
     printf("%s\n", masterGame_displayMap(mg, masterGame_getPart(mg, '$')));
     
     printf("\nMove player 'c' to space occupied by player 'd':\n");
