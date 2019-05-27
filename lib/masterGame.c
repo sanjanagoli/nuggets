@@ -91,6 +91,7 @@ void stringsHolder_delete(stringsHolder_t * sH);
 static point_t * validPoint(masterGame_t * mg);
 static participant_t * intializeParticipant(masterGame_t * mg, char * playerRealName);
 static void removePartHelper(void *arg, const char *key, void *item);
+static void pointSetCopier(void *arg, const char * key, void * item);
 static set_t * mergeSets(set_t * setA, set_t * setB);
 static void mergeSetsHelper(void *arg, const char * key, void * item);
 static set_t * createPlayerPointsSet(set_t * participants);
@@ -448,15 +449,40 @@ static void removePartHelper(void *arg, const char *key, void * item)
       isPlayer = true;
       char * realNameCopy = malloc((strlen(realName)+1)*sizeof(char));
       strcpy(realNameCopy, realName);
+      
       partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, realNameCopy);
       participant_setPurse(partCopy, participant_getPurse(item));
-      participant_setVisibility(partCopy, participant_getVisiblePoints(item));
+      
+      set_t * visiblePoints = set_new();
+      set_iterate(participant_getVisiblePoints(item), visiblePoints, pointSetCopier);
+      participant_setVisibility(partCopy, visiblePoints);
+      
       free(realNameCopy);
     }
     if(!set_insert(setUpdater->updatedSet, &id, partCopy)){
       participant_delete(partCopy);
     }
   }
+}
+
+/**************** pointSetCopier ****************/
+/*
+ * helper function for set iterate used in `removePartHelper` function
+ * this function creates a new point from the point stored in item
+ * creates a string representation from the new point
+ * inserts this into the set passed as an argument
+ * frees the string representation after insert
+ * this creates an identical copy of the point set being iterated over
+ */
+static void pointSetCopier(void *arg, const char * key, void * item)
+{
+  set_t * visiblePoints = arg;
+  point_t * point = point_new(point_getX(item), point_getY(item));
+  char * pointString = point_toString(point);
+  if(!set_insert(visiblePoints, pointString, point)){
+    point_delete(point);
+  }
+  free(pointString);
 }
 
 /**************** masterGame_movePartLoc() ****************/
