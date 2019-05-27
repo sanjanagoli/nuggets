@@ -65,7 +65,7 @@ void iterate_gameOver(void *arg, const char* key, void *item);
 static addrId_t* addrId_new(char id, addr_t addr);
 char findIdGivenAddress(addr_t addr, setMg_t* setMg);
 void sendMessageToAll(setMg_t* setMg, char* message);
-void displayMapDataToAll(setMg_t* mg);
+void displayMapDataToAll(setMg_t* mg, set_t* activeParticipants);
 void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants);
 void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
 static bool findWithSetValue(set_t* set, participant_t* part);
@@ -240,7 +240,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     //display message that is sent to clients (spectators can see everything)
                     displayGoldDataToAll(setMg, id, 0, map, activeParticipants);
                     
-                    displayMapDataToAll(setMg);
+                    displayMapDataToAll(setMg, activeParticipants);
                     
                     // participant_t* part = masterGame_getPart(mg, id);
                     // char* mapdata = displayMapData(mg, part);
@@ -304,7 +304,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 //sending updated map data
 
                 printf("hellloooo\n");
-                displayMapDataToAll(setMg);
+                displayMapDataToAll(setMg, activeParticipants);
 
                 // char* displayMessage = displayMapData(mg, part);
                 // message_send(from, displayMessage);
@@ -480,7 +480,7 @@ displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, se
 
 
 void
-displayMapDataToAll(setMg_t* setMg)
+displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
 {
     if (setMg != NULL) {
         int index = setMg->index;
@@ -488,13 +488,16 @@ displayMapDataToAll(setMg_t* setMg)
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
                 participant_t* part = masterGame_getPart(setMg->mg, id);
-                char* mapdata = masterGame_displayMap(setMg->mg, part);
-                char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
-                strcpy(displayMessage, "DISPLAY\n");
-                strcat(displayMessage, mapdata);
-                addr_t address = setMg->addrIds[i]->addr;
-                message_send(address, displayMessage);
-                free(displayMessage);
+                bool exists = findWithSetValue(activeParticipants, part);
+                if (exists) {
+                    char* mapdata = masterGame_displayMap(setMg->mg, part);
+                    char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
+                    strcpy(displayMessage, "DISPLAY\n");
+                    strcat(displayMessage, mapdata);
+                    addr_t address = setMg->addrIds[i]->addr;
+                    message_send(address, displayMessage);
+                    free(displayMessage);
+                }
             }
         }
         
