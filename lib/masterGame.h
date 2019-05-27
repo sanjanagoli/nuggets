@@ -66,10 +66,15 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName);
  * checks that masterGame is not null and participant is not null
  * gets player id of participant
  * if player id isn't that of spectator then inserts participant into set of removed players
+ * in order to insert participant into set of removed players creates identical copy of removed participant
+ * inserts copy into removed players set
  * intializes a setUpdater struct that holds participant to be removed and empty sturct set
  * iterates over current set of participants 
  * copies all participants (besides one to be removed) into set in struct setUpdater
- * sets participant set in masterGame to be updated participants set hnow eld in setUpdater struct
+ * in copying all participants creates identical copies of all participants 
+ * places copies into new set of participants
+ * deletes old set of participants held in master game
+ * sets (now empty) participant set in masterGame to be updated participants set now held in setUpdater struct
  * deletes setUpdater struct
  *
  * returns true if adding the particpant was succesful
