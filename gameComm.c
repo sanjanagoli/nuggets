@@ -93,7 +93,7 @@ int main(const int argc, char * argv[])
         //map_t * map = map_new(argv[1], MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
         masterGame_t* mastergame = masterGame_new(argv[1], seed); 
         if (masterGame_getMap(mastergame) == NULL) {
-            fprintf("Map was not correctly initialized...\n");
+            fprintf(stderr, "Map was not correctly initialized...\n");
             return 1;
         } else {
             //printf("%d\n", masterGame_getPlayerCount(mg));
@@ -108,7 +108,9 @@ int main(const int argc, char * argv[])
 }
 static bool
 handleInput(void * arg)
-{}
+{
+    return true;
+}
 
 
 static bool
@@ -318,7 +320,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
             }
         }
 
-        if (map_nugsRemaining(map) <= 249) {
+        if (map_nugsRemaining(map) == 0) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
             // setMg_t* setMastergame = malloc(sizeof(setMg_t));
             // setMastergame->set = activeParticipants;
