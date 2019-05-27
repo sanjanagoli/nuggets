@@ -67,7 +67,7 @@ typedef struct masterGame {
   map_t * map;
   set_t * participants;
   set_t * removedPlayers;
-  //set_t * playerIds;
+  set_t * playerIds;
   bool containsSpectator; 
   int playerCount;
 } masterGame_t;
@@ -383,10 +383,10 @@ masterGame_t * masterGame_new(char * pathname, int seed)
     masterGame->map = map_new(pathname, MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
     masterGame->participants = set_new();
     masterGame->removedPlayers = set_new();
-    /*masterGame->playerIds = set_new();
+    masterGame->playerIds = set_new();
     for(int i = 0; i < 26; i++){
       set_insert(masterGame->playerIds, &PlayerSymbolSet[i], NULL);
-    }*/
+    }
     masterGame->containsSpectator = false;
     masterGame->playerCount = 0;
     return masterGame;
@@ -439,8 +439,6 @@ static point_t * validPoint(masterGame_t * mg)
     point_setX(currPoint, x);
     point_setY(currPoint, y); 
   }
-  set_delete(playerPoints, pointDeleteHelper);
-  set_delete(nuggets, pointDeleteHelper);
   return currPoint;
 }
 
@@ -583,7 +581,6 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
       if(participant_setLoc(part, newLoc)){
         int nugIncrement = map_consumeNug(mg->map, newX, newY);
         participant_incrementPurse(part, nugIncrement);
-        free(ph);
         return true;
       }
       else{
@@ -867,7 +864,6 @@ char * masterGame_endGame(masterGame_t * mg) {
   *(sH->idx) = '\0';
   return gameSummary;
 }
-
 /**************** endGameHelper() ****************/
 /*
  * helper function for set iterate used in `masterGame_endGame` function
@@ -926,10 +922,6 @@ void masterGame_delete(masterGame_t * mg)
 {
   if(mg != NULL){
     map_delete(mg->map);
-    set_delete(mg->participants, participantsSetDeleteHelper);
-    set_delete(mg->removedPlayers, participantsSetDeleteHelper);
-    set_delete(mg->participants, participantsSetDeleteHelper);
-    set_delete(mg->participants, participantsSetDeleteHelper);
     set_delete(mg->participants, participantsSetDeleteHelper);
     free(mg);
   }
