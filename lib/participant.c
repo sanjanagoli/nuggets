@@ -242,5 +242,8 @@ void delete_helper(void* item)
 /* see participant.h for description */
 void participant_setVisibility(participant_t * part, set_t * visiblePoints)
 {
-    part->visiblePoints = visiblePoints;
+    if(part != NULL) {
+        set_delete(part->visiblePoints, delete_helper);
+        part->visiblePoints = visiblePoints;
+    }
 }
