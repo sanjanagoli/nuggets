@@ -79,6 +79,7 @@ int main(const int argc, char * argv[])
 {
     if(argc < 2 || argc > 3){
         fprintf(stderr, "usage: ./server map.txt [seed]\n");
+        return 1;
     } else {
         int seed;
         if (argc == 3) {
@@ -91,21 +92,25 @@ int main(const int argc, char * argv[])
         printf("%d\n", portnumber);
         //map_t * map = map_new(argv[1], MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
         masterGame_t* mastergame = masterGame_new(argv[1], seed); 
-        //printf("%d\n", masterGame_getPlayerCount(mg));
+        if (masterGame_getMap(mastergame) == NULL) {
+            fprintf("Map was not correctly initialized...\n");
+            return 1;
+        } else {
+            //printf("%d\n", masterGame_getPlayerCount(mg));
 
-        setMg_t* setMg = malloc(sizeof(setMg_t));
-        setMg->set = partToAddress;
-        setMg->mg = mastergame;
-        setMg->index = 0;
-        message_loop(setMg, handleInput, handleMessage);
+            setMg_t* setMg = malloc(sizeof(setMg_t));
+            setMg->set = partToAddress;
+            setMg->mg = mastergame;
+            setMg->index = 0;
+            message_loop(setMg, handleInput, handleMessage);
+        }
     }   
 }
 static bool
 handleInput(void * arg)
-{
-    printf("here\n");
-    return true;
-}
+{}
+
+
 static bool
 handleMessage(void * arg, const addr_t from, const char * message)
 {
@@ -313,7 +318,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
             }
         }
 
-        if (map_nugsRemaining(map) == 0) {
+        if (map_nugsRemaining(map) <= 249) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
             // setMg_t* setMastergame = malloc(sizeof(setMg_t));
             // setMastergame->set = activeParticipants;
@@ -390,7 +395,7 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
                     char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
                     strcpy(message, "GAMEOVER\n");
                     strcat(message, summary);
-                    printf("%s", summary);
+                    //printf("summary %s", summary);
                     message_send(setMg->addrIds[i]->addr, message);
                 }
                 
@@ -597,204 +602,3 @@ addrId_new(char id, addr_t addr)
         return NULL;
     }
 }
-
-
-
-
-
-
-
-
-
-/* Input: takes in a string 
-*  Output: returns a tokenized list of words based on space delimeter
-*  
-*/
-
-// static char**
-// splitMessage(char* message)
-// {
-//     int numberWords = 0;
-// 	char delim[] = " ";
-		
-//     //copies in order to find how many words are in query without affecting input
-//     char *line = malloc((strlen(message)+1)*sizeof(char));
-//     strcpy(line, message);
-
-//     char *linecopy = malloc((strlen(line)+1)*sizeof(char));
-//     strcpy(linecopy, line);
-//     char *count = strtok(linecopy, delim);
-
-//     //determines how many words are in the query in order to correctly allocate array
-//     while(count != NULL)
-//     {	
-//         count = strtok(NULL, delim);
-//         numberWords++;
-//     }
-//     free(linecopy);
-
-//     //tokenizes each of the words to input into array
-//     char *ptr = strtok(line, delim);
-//     int j = 0;
-
-//     char **words = calloc(numberWords, 100*sizeof(char)); 
-//     while(ptr != NULL)
-//     {	
-//         words[j] = ptr;
-//         ptr = strtok(NULL, delim);
-//         j++;
-//     }
-
-//     // there are no commands with more than 4 tokens; therefore, if there are more than 4 tokens, not a valid command
-//     if (numberWords <= 4) {
-//          return words;
-//     } else {
-//         return NULL;
-//     }
-// }  
-
-// static bool
-// messageParser(void* arg, char** words, const addr_t from, const char * message)
-// {
-//     setMg_t* setMg = arg;
-//     masterGame_t* mg = setMg->mg;
-//     map_t* map = mg->map;
-//     set_t* partToAddress = setMg->set;
-
-//     if ( (words[0] != NULL) && (strcmp(words[0], "SPECTATE") == 0) )  {
-//         printf("message: %s\n", message);
-
-//         //removing existing spectator (if there is one) is handled by this method
-//         char id = masterGame_addPart(mg, NULL);
-
-//         if (id != '\0') {
-//             //server responds to spectator with grid message
-//             char gridmessage[20];
-//             sprintf(gridmessage, "GRID %d %d", map_getRows(map), map_getCols(map));
-//             message_send(from, gridmessage);
-
-//             //display message that is sent to clients (spectators can see everything)
-//             participant_t* part = masterGame_getPart(id);
-//             char* mapdata = masterGame_displayMap(mg, part);
-//             char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
-//             strcpy(displayMessage, "DISPLAY\n");
-//             strcat(displayMessage, mapdata);
-//             message_send(from, displayMessage);
-//             free(displayMessage);
-
-//             //send gold message when new spectator joins -- always has p=0 and n=0
-//             //include nuggets remaining integer using map module method
-//             char *mes = malloc((strlen("GOLD 0 0 rr")+1)*sizeof(char));
-//             strcpy(mes, "GOLD 0 0 ");
-//             char remaining[2];
-//             sprintf(remaining, "%d", map_nugsRemaining(map));
-//             strcat(mes, remaining); 
-//             message_send(from, mes);
-//             free(mes);
-//         } else {
-//             message_send(from, "NO...spectator was not created correctly!\n");
-//         }
-//         return false;
-
-//     } else if (strcmp(words[0], "PLAY") == 0) {
-//         printf("message: %s\n", message);
-//         if (masterGame_getPlayerCount(mg) >= MaxPlayers) {
-//             message_send(from, "NO");
-//         } else {
-//             if (words[1] != NULL) {
-//                 //retrieve id of newly created 
-
-//                 char id = masterGame_addPart(mg, words[1]);
-//                 if (id != '\0') {
-                    
-
-//                     //Display OK ID when new player effectively connects
-//                     set_insert(partToAddress, &id, (addr_t *) &from);
-//                     char* mes = malloc((strlen("OK L")+1)*sizeof(char)); 
-//                     strcpy(mes, "OK ");
-//                     strcat(mes, &id);
-//                     message_send(from, mes);
-//                     free(mes);
-
-//                     //Display grid message
-//                     char gridmessage[20];
-//                     sprintf(gridmessage, "GRID %d %d", map_getRows(map), map_getCols(map));
-//                     message_send(from, gridmessage);
-
-//                     //display message that is sent to clients (spectators can see everything)
-//                     participant_t* part = masterGame_getPart(id);
-//                     char* mapdata = masterGame_displayMap(mg, part);
-//                     char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
-//                     strcpy(displayMessage, "DISPLAY\n");
-//                     strcat(displayMessage, mapdata);
-//                     message_send(from, displayMessage);
-//                     free(displayMessage);
-
-
-//                 } 
-//             }
-//         }
-//         return false;
-//     } else if (strcmp(words[0], "KEY") == 0) {
-//         printf("message: %s\n", words[0]);
-//         char* idPointer = findId(partToAddress, (addr_t *) &from);
-//         if (words[1] != NULL && idPointer != NULL) {
-//             char id = *idPointer;
-
-//             if (strcmp(words[1], "h") == 0) {
-//                 masterGame_movePartLoc(mg, id, -1, 0);            
-//             } else if (strcmp(words[1], "l") == 0) {
-//                 masterGame_movePartLoc(mg, id, 1, 0);
-//             } else if (strcmp(words[1], "j") == 0) {
-//                 masterGame_movePartLoc(mg, id, 0, -1);
-//             } else if (strcmp(words[1], "k") == 0) {
-//                 masterGame_movePartLoc(mg, id, 0, 1);
-//             } else if (strcmp(words[1], "y") == 0) {
-//                 masterGame_movePartLoc(mg, id, -1, 1);
-//             } else if (strcmp(words[1], "u") == 0) {
-//                 masterGame_movePartLoc(mg, id, 1, 1);
-//             } else if (strcmp(words[1], "b") == 0) {
-//                 masterGame_movePartLoc(mg, id, -1, -1);
-//             } else if (strcmp(words[1], "n") == 0) {
-//                 masterGame_movePartLoc(mg, id, 1, -1);
-//             } else {
-//                 message_send(from, "NO...Key is not part of valid set [h, l, j, k, y, u, b, n]\n");
-//             }
-//         }
-//         return false;
-//     }
-//     else {
-//         message_send(from, "NO...not a valid message from client");
-//         return false;
-//     }
-
-// }
-
-// static void
-// parseMessage(masterGame_t *mg, char **words)
-// {
-//     if (words[0] != NULL) {
-//         if (strcmp(words[0], "SPECTATE") == 0)  {
-//             printf("message: %s\n", message);
-//             return false;
-//         } else if (strcmp(words[0], "PLAY") == 0) {
-//             printf("message: %s\n", message);
-//             if (words[1] != NULL) {
-//                 masterGame_addPart(mg, words[1]);
-//             }
-//             return false;
-//         } else if (strcmp(words[0], "KEY") == 0) {
-//             printf("message: %s\n", words[0]);
-//             if (words[1] != NULL) {
-//                 //actions performed based on keys in requirement spec
-//                 if (strcmp(words[1], "h") == 0) {
-//                     masterGame_movePartLoc(mg, PARTID, )
-//                 }
-//             }
-//             return false;
-//         }
-//     }
-//     else {
-//         return true;
-//     }   
-// }

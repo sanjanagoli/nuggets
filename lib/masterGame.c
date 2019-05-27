@@ -622,12 +622,12 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
     for(int y = 0; y < map_getRows(mg->map); y++){
       point_t * currPoint = point_new(x, y);
       
-      printf("%s:    ", point_toString(currPoint));
+      //printf("%s:    ", point_toString(currPoint));
       
       int currIndex = getMapIndex(x, y, map_getCols(mg->map), map_getRows(mg->map));
       if(x == map_getCols(mg->map)){
         populatedMap[currIndex] = '\n'; 
-        printf("placed here: [newline]\n");
+        //printf("placed here: [newline]\n");
       }
       else if(point_setHasPoint(currPoint, visiblePoints) && participant_getId(part) != '$'){
         if(point_setHasPoint(currPoint, currVisiblePoints) && point_setHasPoint(currPoint, nuggets)){
@@ -651,24 +651,24 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
       else if(participant_getId(part) == '$'){
         if(point_setHasPoint(currPoint, nuggets)){
           populatedMap[currIndex] = '*';
-          printf("placed here: *\n");
+          //printf("placed here: *\n");
         }
         else if(
           point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
             populatedMap[currIndex] = partIdAtCurrLocation;  
-            printf("placed here: %c\n", partIdAtCurrLocation);
+            //printf("placed here: %c\n", partIdAtCurrLocation);
           }
         }
         else{
           populatedMap[currIndex] = map_getChar(mg->map, x, y);
-          printf("placed here (from getChar): %c\n", map_getChar(mg->map, x, y));
+          //printf("placed here (from getChar): %c\n", map_getChar(mg->map, x, y));
         }
       }
       else{
         populatedMap[currIndex] = ' ';
-        printf("placed here: ' '\n");
+        //printf("placed here: ' '\n");
       }
       
     }
@@ -809,19 +809,7 @@ static void getParticipantIdAtPointHelper(void *arg, const char * key, void * it
 /* see masterGame.h for description */
 char * masterGame_endGame(masterGame_t * mg)
 {
-  char * gameSummary = malloc(sizeof(char) * (GameSummaryLineLength * (setSizeCounter(mg->participants) - 1 + setSizeCounter(mg->removedPlayers))));
-  char line[GameSummaryLineLength];
-  sprintf(line, "\n----Active Participants-----\n");
-  char * formattedLine = (char *)malloc(GameSummaryLineLength);
-  strcpy(formattedLine, &line[0]);
-  strcat(gameSummary, formattedLine);
-  set_iterate(mg->participants, gameSummary, endGameHelper);
-  char line2[GameSummaryLineLength];
-  sprintf(line2, "\n----Removed Participants----\n");
-  char * formattedLine2 = (char *)malloc(GameSummaryLineLength);
-  strcpy(formattedLine2, &line2[0]);
-  strcat(gameSummary, formattedLine2);
-  set_iterate(mg->removedPlayers, gameSummary, endGameHelper);  
+  
   return gameSummary;
 }
 
@@ -844,7 +832,7 @@ static void endGameHelper(void * arg, const char * key, void * item)
     char line[GameSummaryLineLength];
     sprintf(line, "%2c%6d%20s\n", currId, participant_getPurse(item), participant_getRealName(item));
     char * formattedLine = (char *)malloc(GameSummaryLineLength);
-    strcpy(formattedLine, &line[0]);
+    strcpy(formattedLine, line);
     strcat(gameSummary, formattedLine);
   }
 }
