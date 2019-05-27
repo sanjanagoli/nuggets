@@ -450,6 +450,7 @@ static void removePartHelper(void *arg, const char *key, void * item)
       strcpy(realNameCopy, realName);
       partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, realNameCopy);
       participant_setPurse(partCopy, participant_getPurse(item));
+      participant_setVisibility(partCopy, participant_getVisiblePoints(item));
       free(realNameCopy);
     }
     if(!set_insert(setUpdater->updatedSet, &id, partCopy)){
