@@ -64,7 +64,7 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName);
  * no major assumptions
  * 
  * checks that masterGame is not null and participant is not null
- * gets played id of participant
+ * gets player id of participant
  * if player id isn't that of spectator then inserts participant into set of removed players
  * intializes a setUpdater struct that holds participant to be removed and empty sturct set
  * iterates over current set of participants 
@@ -89,6 +89,9 @@ bool masterGame_removePart(masterGame_t* mg, participant_t * part);
  * decomposes point representing current location into its x and y int 
  * adds change in x and y to location
  * creates new point representing updated location
+ * checks if point is a valid spot on map
+ * if another player is at that point then switches locations between the two players
+ * updates player's visibility to include new location
  * moves player to updated lcation
  * checks if updated location is on a nugget
  * if location is on a nuggest consumes the nugget in the map and increments the player's purse
@@ -107,7 +110,9 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy);
  * checks that masterGame is not null
  * checks that masterGame particpants set contains the given player id
  * gets the current location of player id as point struct from participants set
+ * checks if point is a valid spot on map
  * creates new point representing new location from given x and y
+ * updates player's visibility to include new location
  * moves player to new location
  * checks if updated location is on a nugget
  * if location is on a nuggest consumes the nugget in the map and increments the player's purse
@@ -148,8 +153,9 @@ int masterGame_getPlayerCount(masterGame_t * mg);
  * this function returns as set where key = string representation of point w/ an active participant and item = point
  * loops over every point in map
  * if point is at end of row places a newline symbol there
- * if point is visible and location of nugget places asterisk there
- * if point is visible and location of paricipant then places given particiapnts id there
+ * if point is currently visible and location of nugget places asterisk there
+ * if point is currently visible and location of paricipant then places given particiapnts id there
+ * displays participant itself as an '@' symbol
  * if point is visible and doesn't contain nugget or participant then places base map feature there (wall, hallway, etc.)
  * if point isn't visible places a blank space there
  * 

@@ -8,4 +8,4 @@
 ./participantTest &> participantTest.out
 
 # Test masterGame
-#./masterGameTest &> masterGameTest.out
+./masterGameTest &> masterGameTest.out
