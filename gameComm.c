@@ -39,6 +39,11 @@ typedef struct partAndIdHolder {
   participant_t * part;
 } partAndIdHolder_t;
 
+typedef struct partBool {
+    participant_t* part;
+    bool exists;
+} partBool_t;
+
 
 typedef struct setMg {
     set_t* set;
@@ -63,6 +68,10 @@ void sendMessageToAll(setMg_t* setMg, char* message);
 void displayMapDataToAll(setMg_t* mg);
 void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map);
 void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
+static bool findWithSetValue(set_t* set, participant_t* part);
+void findWithSetValue_helper(void *arg, const char* key, void *item);
+void displayGameOver(set_t* activeParticipants, setMg_t* setMg);
+
 int randomGen(int seed, int min, int upper);
 
 /************* main ************/
@@ -211,7 +220,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     
 
                     //Display OK ID when new player effectively connects
-                    set_insert(partToAddress, &id, (addr_t *) &from);
+                    //set_insert(partToAddress, &id, (addr_t *) &from);
                     addrId_t* addrId = addrId_new(id, from);
                     setMg->addrIds[setMg->index] = addrId;
                     setMg->index = setMg->index+1;
@@ -296,24 +305,30 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 
             }
         }
+
         if (map_nugsRemaining(map) == 0) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
-            setMg_t* setMg = malloc(sizeof(setMg_t));
-            setMg->set = partToAddress;
-            setMg->mg = mg;
-            set_iterate(activeParticipants, setMg, iterate_gameOver);
+            // setMg_t* setMastergame = malloc(sizeof(setMg_t));
+            // setMastergame->set = activeParticipants;
+            // setMastergame->mg = mg;
+            // set_iterate(activeParticipants, setMastergame, iterate_gameOver);
+            
+            displayGameOver(activeParticipants, setMg);
             return true;
         } else {
             return false;
         }
+
     } else {
         message_send(from, "NO...not a valid message from client");
         if (map_nugsRemaining(map) == 0) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
-            setMg_t* setMg = malloc(sizeof(setMg_t));
-            setMg->set = partToAddress;
-            setMg->mg = mg;
-            set_iterate(activeParticipants, setMg, iterate_gameOver);
+            // setMg_t* setMastergame = malloc(sizeof(setMg_t));
+            // setMastergame->set = activeParticipant;
+            // setMastergame->mg = mg;
+            //set_iterate(activeParticipants, setMastergame, iterate_gameOver);
+
+            displayGameOver(activeParticipants, setMg);
             return true;
         } else {
             return false;
@@ -349,6 +364,76 @@ handleMessage(void * arg, const addr_t from, const char * message)
 }
 
 
+void
+displayGameOver(set_t* activeParticipants, setMg_t* setMg)
+{
+    if (setMg != NULL) {
+        
+        int index = setMg->index;
+        for (int i = 0; i < index; i++) {
+            char id = setMg->addrIds[i]->id;
+            if (id != '\0') {
+                ;
+                participant_t* part = masterGame_getPart(setMg->mg, id);
+                bool exists = findWithSetValue(activeParticipants, part);
+                if (exists) {
+                    char* summary = masterGame_endGame(setMg->mg);
+
+                    //creating gameover message in correct format to send to each client
+                    char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
+                    strcpy(message, "GAMEOVER\n");
+                    strcat(message, summary);
+                    printf("%s", summary);
+                    message_send(setMg->addrIds[i]->addr, message);
+                }
+                
+            }
+        }
+    }
+}
+
+static bool
+findWithSetValue(set_t* set, participant_t* part)
+{
+    partBool_t* partBool = malloc(sizeof(partBool_t));
+    partBool->part = part;
+    partBool->exists = false;
+    set_iterate(set, partBool, findWithSetValue_helper);
+    return partBool->exists;
+}
+
+void
+findWithSetValue_helper(void *arg, const char* key, void *item)
+{
+    partBool_t* partBool = arg;
+    if (partBool->part == item) {
+        partBool->exists = true;
+    }
+}
+
+void
+iterate_gameOver(void *arg, const char* key, void *item)
+{
+    //need setMg because iterate helper only takes in one arg
+    setMg_t* setMg = arg;
+    set_t* partToAddress = setMg->set;
+
+    //returns address of individual participant that is active
+    addr_t* addrP = set_find(partToAddress, key);
+    char* summary = masterGame_endGame(setMg->mg);
+
+    //creating gameover message in correct format to send to each client
+    char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
+    strcpy(message, "GAMEOVER\n");
+    strcat(message, summary);
+
+    //sends message based on address obtained from partToAddress set
+    message_send(*addrP, message);
+
+    //frees up allocated memory
+    free(message);
+
+}
 
 char*
 displayMapData(masterGame_t* mg, participant_t* part)
@@ -446,29 +531,7 @@ iterate_partToAddress(void *arg, const char* key, void* item)
     }
 }
 
-void
-iterate_gameOver(void *arg, const char* key, void *item)
-{
-    //need setMg because iterate helper only takes in one arg
-    setMg_t* setMg = arg;
-    set_t* partToAddress = setMg->set;
 
-    //returns address of individual participant that is active
-    addr_t* addrP = set_find(partToAddress, key);
-    char* summary = masterGame_endGame(setMg->mg);
-
-    //creating gameover message in correct format to send to each client
-    char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
-    strcpy(message, "GAMEOVER\n");
-    strcat(message, summary);
-
-    //sends message based on address obtained from partToAddress set
-    message_send(*addrP, message);
-
-    //frees up allocated memory
-    free(message);
-
-}
 
 char
 findIdGivenAddress(addr_t addr, setMg_t* setMg)
