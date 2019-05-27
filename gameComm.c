@@ -66,7 +66,7 @@ static addrId_t* addrId_new(char id, addr_t addr);
 char findIdGivenAddress(addr_t addr, setMg_t* setMg);
 void sendMessageToAll(setMg_t* setMg, char* message);
 void displayMapDataToAll(setMg_t* mg);
-void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map);
+void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants);
 void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
 static bool findWithSetValue(set_t* set, participant_t* part);
 void findWithSetValue_helper(void *arg, const char* key, void *item);
@@ -236,8 +236,9 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     sprintf(gridmessage, "GRID %d %d", map_getRows(map), map_getCols(map));
                     message_send(from, gridmessage);
 
+                    set_t* activeParticipants = masterGame_getActiveParticipants(mg);
                     //display message that is sent to clients (spectators can see everything)
-                    displayGoldDataToAll(setMg, id, 0, map);
+                    displayGoldDataToAll(setMg, id, 0, map, activeParticipants);
                     
                     displayMapDataToAll(setMg);
                     
@@ -283,6 +284,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     masterGame_movePartLoc(mg, id, 1, 1);
                 } else if (strcmp(words[1], "Q") == 0) {
                     message_send(from, "QUIT");
+                    masterGame_removePart(mg, part);
                     //return true;
                 } else {
                     message_send(from, "NO...Key is not part of valid set [h, l, j, k, y, u, b, n, Q]\n");
@@ -293,10 +295,15 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 // int collected = (participant_getPurse(part))-currPurse;
                 // char goldMessage[100];
                 // sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
-                displayGoldDataToAll(setMg, id, currPurse, map);
+
+                set_t* activeParticipants = masterGame_getActiveParticipants(mg);
+
+                displayGoldDataToAll(setMg, id, currPurse, map, activeParticipants);
                 //message_send(from, goldMessage);
 
                 //sending updated map data
+
+                printf("hellloooo\n");
                 displayMapDataToAll(setMg);
 
                 // char* displayMessage = displayMapData(mg, part);
@@ -373,7 +380,7 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
         for (int i = 0; i < index; i++) {
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
-                ;
+                
                 participant_t* part = masterGame_getPart(setMg->mg, id);
                 bool exists = findWithSetValue(activeParticipants, part);
                 if (exists) {
@@ -446,7 +453,7 @@ displayMapData(masterGame_t* mg, participant_t* part)
 }
 
 void
-displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map)
+displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants)
 {
     if (setMg != NULL) {
         int index = setMg->index;
@@ -454,14 +461,17 @@ displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map)
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
                 participant_t* part = masterGame_getPart(setMg->mg, id);
-                int collected = (participant_getPurse(part))-currPurse;
-                if (id != givenId) {
-                    collected = 0;
+                bool exists = findWithSetValue(activeParticipants, part);
+                if (exists) {
+                    int collected = (participant_getPurse(part))-currPurse;
+                    if (id != givenId) {
+                        collected = 0;
+                    }
+                    char goldMessage[100];
+                    sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
+                    addr_t address = setMg->addrIds[i]->addr;
+                    message_send(address, goldMessage);
                 }
-                char goldMessage[100];
-                sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
-                addr_t address = setMg->addrIds[i]->addr;
-                message_send(address, goldMessage);
             }
         }
     }
