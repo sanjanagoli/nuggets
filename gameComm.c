@@ -117,7 +117,7 @@ handleInput(void * arg)
     return true;
 }
 
-/* handleMessage is a helper method for message_loop -- handles different commands passed
+/* handleMessage is a helper method for message_loop -- handles different commands passedy
 *
 */
 
