@@ -1,7 +1,7 @@
 /* 
  * masterGame.h - header file for Nuggets 'masterGame' module
  * 
- * A ‘masterGame’ is a struct holding the central data for the entire game
+ * A ‘masterGame’ is a struct holding the central data/game logic for the entire game
  *
  * Dhaivat Mehta, Dartmouth College, 19S, COSC 050, Final Project - Nuggets
  */
@@ -160,6 +160,7 @@ int masterGame_getPlayerCount(masterGame_t * mg);
  * if point isn't visible places a blank space there
  * 
  * returns string representing map data for given participant at this point in time
+ * string that is returned must be freed by caller
  */
 char * masterGame_displayMap(masterGame_t * mg, participant_t * part);
 
@@ -175,6 +176,7 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part);
  * then does the same for list of removed players
  * 
  * returns string with full game summary
+ * string that is returned must be freed by caller
  */
 char * masterGame_endGame(masterGame_t * mg);
 
