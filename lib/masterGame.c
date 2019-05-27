@@ -150,6 +150,11 @@ void setUpdater_delete(setUpdater_t * setUpdater, void (*itemdelete)(void *item)
 
 /**************** partAndIdHolder_new ****************/
 /*
+ * function to intializes partAndIdHolder struct
+ * allocates memory for struct
+ * takes in a char and stores it in instance variable
+ * returns NULL if error in allocating memory for struct
+ * otherwise returns intialized partAndIdHolder sturct
  */
 partAndIdHolder_t * partAndIdHolder_new(char id)
 {
@@ -166,6 +171,11 @@ partAndIdHolder_t * partAndIdHolder_new(char id)
 
 /**************** partAndIdHolder_delete ****************/
 /*
+ * function to delete partAndIdHolder struct
+ * takes in partAndIdHolder and item delete function
+ * checks partAndIdHolder isn't null
+ * deletes participant held in instance variable using `participant_delete` function
+ * frees allocated memory
  */
 void partAndIdHolder_delete(partAndIdHolder_t * partAndIdHolder, void (*itemdelete)(void *item))
 {
@@ -178,6 +188,11 @@ void partAndIdHolder_delete(partAndIdHolder_t * partAndIdHolder, void (*itemdele
 
 /**************** partAndPointHolder_new ****************/
 /*
+ * function to intializes partAndPointHolder struct
+ * allocates memory for struct
+ * takes in a point and stores it in instance variable
+ * returns NULL if error in allocating memory for struct
+ * otherwise returns intialized partAndPointHolder sturct
  */
 partAndPointHolder_t * partAndPointHolder_new(point_t * point)
 {
@@ -194,6 +209,11 @@ partAndPointHolder_t * partAndPointHolder_new(point_t * point)
 
 /**************** partAndPointHolder_delete ****************/
 /*
+ * function to delete partAndPointHolder struct
+ * takes in partAndPointHolder and item delete function
+ * checks partAndPointHolder isn't null
+ * deletes participant held in instance variable using `participant_delete` function
+ * frees allocated memory
  */
 void partAndPointHolder_delete(partAndPointHolder_t * partAndPointHolder, void (*itemdelete)(void *item))
 {
@@ -204,7 +224,13 @@ void partAndPointHolder_delete(partAndPointHolder_t * partAndPointHolder, void (
 }
 
 /**************** summer_new ****************/
-// intialzes summer struct
+/*
+ * function to intializes sumer struct
+ * allocates memory for struct
+ * intializes int in instance variable at value of 0
+ * returns NULL if error in allocating memory for struct
+ * otherwise returns intialized partAndPointHolder sturct
+ */
 summer_t * summer_new(void)
 {
   summer_t * summer = malloc(sizeof(summer_t));
@@ -219,7 +245,12 @@ summer_t * summer_new(void)
 }
 
 /**************** summer_increment ****************/
-// increments value stored in summer struct
+/*
+ * function to increment int held summer struct
+ * takes in summer 
+ * checks summer isn't null
+ * increments int held in summer variable by 1
+ */
 void summer_increment(summer_t * summer)
 {
   if(summer != NULL){
@@ -228,7 +259,12 @@ void summer_increment(summer_t * summer)
 }
 
 /**************** summer_delete ****************/
-// deletes and frees summer struct
+/*
+ * function to delete summer struct
+ * takes in summer 
+ * checks summer isn't null
+ * frees allocated memory
+ */
 void summer_delete(summer_t * summer)
 {
   if(summer != NULL){
@@ -238,6 +274,12 @@ void summer_delete(summer_t * summer)
 
 /**************** idHolder_new ****************/
 /*
+ * function to intializes idHolder struct
+ * allocates memory for struct
+ * intializes char in instance variable at value of '\0'
+ * intialized int held in instance variable at value of 0
+ * returns NULL if error in allocating memory for struct
+ * otherwise returns intialized idHolder sturct
  */
 idHolder_t * idHolder_new(void)
 {
@@ -255,6 +297,10 @@ idHolder_t * idHolder_new(void)
 
 /**************** idHolder_assignId ****************/
 /*
+ * function to set id held idHolder struct
+ * takes in idHolder and char
+ * checks idHolder isn't null
+ * sets instance variable id held in idHolder to given char
  */
 void idHolder_assignId(idHolder_t * iH, char id)
 {
@@ -265,6 +311,10 @@ void idHolder_assignId(idHolder_t * iH, char id)
 
 /**************** idHolder_incrementIndex ****************/
 /*
+ * function to increment int held idHolder struct
+ * takes in idHolder and char
+ * checks idHolder isn't null
+ * increments int held in index variable by 1
  */
 void idHolder_incrementIndex(idHolder_t * iH)
 {
@@ -275,6 +325,10 @@ void idHolder_incrementIndex(idHolder_t * iH)
 
 /**************** idHolder_delete ****************/
 /*
+ * function to delete idHolder struct
+ * takes in idHolder 
+ * checks summer isn't null
+ * frees allocated memory
  */
 void idHolder_delete(idHolder_t * iH)
 {
@@ -401,6 +455,10 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
 
 /**************** intializeParticipantHelper ****************/
 /*
+ * helper function for set iterate used in `intializeParticipant` function
+ * this function declares the argument passed to be of type idHolder
+ * takes every key in the set its iterating over 
+ * and if it is equal to the char held in idHolder increments the int held in idHolder
  */
 static void intializeParticipantHelper(void *arg, const char *key, void *item)
 {
@@ -563,9 +621,13 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
   for(int x = 0; x < map_getCols(mg->map) + 1; x++){
     for(int y = 0; y < map_getRows(mg->map); y++){
       point_t * currPoint = point_new(x, y);
+      
+      printf("%s:    ", point_toString(currPoint));
+      
       int currIndex = getMapIndex(x, y, map_getCols(mg->map), map_getRows(mg->map));
       if(x == map_getCols(mg->map)){
-        populatedMap[currIndex] = '\n';        
+        populatedMap[currIndex] = '\n'; 
+        printf("placed here: [newline]\n");
       }
       else if(point_setHasPoint(currPoint, visiblePoints) && participant_getId(part) != '$'){
         if(point_setHasPoint(currPoint, currVisiblePoints) && point_setHasPoint(currPoint, nuggets)){
@@ -574,12 +636,12 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
         else if(point_setHasPoint(currPoint, currVisiblePoints) && point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
-/*            if(partIdAtCurrLocation == participant_getId(part)){
+            if(partIdAtCurrLocation == participant_getId(part)){
               populatedMap[currIndex] = '@';
             }
-            else{*/
+            else{
               populatedMap[currIndex] = partIdAtCurrLocation; 
-            //}         
+            }         
           }
         }
         else{
@@ -589,20 +651,24 @@ char * masterGame_displayMap(masterGame_t * mg, participant_t * part)
       else if(participant_getId(part) == '$'){
         if(point_setHasPoint(currPoint, nuggets)){
           populatedMap[currIndex] = '*';
+          printf("placed here: *\n");
         }
         else if(
           point_setHasPoint(currPoint, playerPoints)){
           char partIdAtCurrLocation = getParticipantIdAtPoint(mg, currPoint);
           if(partIdAtCurrLocation != '\0'){
-            populatedMap[currIndex] = partIdAtCurrLocation;          
+            populatedMap[currIndex] = partIdAtCurrLocation;  
+            printf("placed here: %c\n", partIdAtCurrLocation);
           }
         }
         else{
           populatedMap[currIndex] = map_getChar(mg->map, x, y);
+          printf("placed here (from getChar): %c\n", map_getChar(mg->map, x, y));
         }
       }
       else{
         populatedMap[currIndex] = ' ';
+        printf("placed here: ' '\n");
       }
       
     }
@@ -692,10 +758,17 @@ static void createPlayerPointsSetHelper(void *arg, const char * key, void * item
  */
 static int getMapIndex(int x, int y, int ncols, int nrows)
 {
-  return (x) + (y * ncols);
+  return (x+y) + (y * ncols);
 }
 
+
 /**************** getParticipantIdAtPoint() ****************/
+/*
+ * helper function that gives the id of the participant at a given location
+ * takes in a masterGame and a point
+ * iterates over set of active participants
+ * returns the id of the participant held at the current location
+ */
 static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint)
 {
   partAndPointHolder_t * pAPH = partAndPointHolder_new(currPoint);
@@ -706,7 +779,16 @@ static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint)
 }
 
 /**************** getParticipantIdAtPointHelper ****************/
-// helper function for getParticipantIdAtPoint
+/*
+ * helper function for set iterate used in `getParticipantIdAtPoint` function
+ * this function declares the argument passed to be of type partAndPointHolder
+ * takes the point held in partAndPointHolder and decomposes it into the x and y int components
+ * item is a participant
+ * gets point representing location of participant
+ * decomposes participant location into x and y int compoenents 
+ * if location held in partAndIdHolder and location of participant are equal 
+ * then stores participant in partAndIdHolder
+ */
 static void getParticipantIdAtPointHelper(void *arg, const char * key, void * item)
 {
   partAndPointHolder_t * pAPH = arg;
@@ -728,12 +810,17 @@ static void getParticipantIdAtPointHelper(void *arg, const char * key, void * it
 char * masterGame_endGame(masterGame_t * mg)
 {
   char * gameSummary = malloc(sizeof(char) * (GameSummaryLineLength * (setSizeCounter(mg->participants) - 1 + setSizeCounter(mg->removedPlayers))));
-/*  char line[GameSummaryLineLength];
-  sprintf(line, "ID PURSE           REAL NAME\n");
+  char line[GameSummaryLineLength];
+  sprintf(line, "\n----Active Participants-----\n");
   char * formattedLine = (char *)malloc(GameSummaryLineLength);
   strcpy(formattedLine, &line[0]);
-  strcat(gameSummary, formattedLine);*/
+  strcat(gameSummary, formattedLine);
   set_iterate(mg->participants, gameSummary, endGameHelper);
+  char line2[GameSummaryLineLength];
+  sprintf(line2, "\n----Removed Participants----\n");
+  char * formattedLine2 = (char *)malloc(GameSummaryLineLength);
+  strcpy(formattedLine2, &line2[0]);
+  strcat(gameSummary, formattedLine2);
   set_iterate(mg->removedPlayers, gameSummary, endGameHelper);  
   return gameSummary;
 }
@@ -778,7 +865,11 @@ static int setSizeCounter(set_t * set)
 }
 
 /**************** setSizeCounterHelper ****************/
-// helper function for counterSum
+/*
+ * helper function for set iterate used in `setSizeCounter` function
+ * this function declares the argument passed te be of type summer
+ * increments summer for each item in set
+ */
 static void setSizeCounterHelper(void *arg, const char * key, void * item)
 {
   summer_t * summer = arg;
