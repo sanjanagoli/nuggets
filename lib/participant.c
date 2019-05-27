@@ -82,6 +82,7 @@ set_t* participant_getVisiblePoints(participant_t* part)
     if (part != NULL) {
         return part->visiblePoints;
     } else {
+        printf("nig");
         return NULL;
     }
 }

@@ -105,3 +105,4 @@ void participant_print(participant_t *part, FILE *fp);
     Functionality/output: frees the current visible point set in participant and replaces it with given visible points set
 */
 void participant_setVisibility(participant_t * part, set_t * visiblePoints);
+
