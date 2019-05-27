@@ -57,7 +57,7 @@ long int random(void);
 void srandom(unsigned int seed);
 static bool handleMessage(void * arg, const addr_t from, const char * message);
 static bool handleInput(void * arg);
-static char findId(set_t* partToAddress, addr_t* addrP);
+//static char findId(set_t* partToAddress, addr_t* addrP);
 void findId_helper(void *arg, const char *key, void *item);
 char* displayMapData(masterGame_t* mg, participant_t* part);
 void iterate_partToAddress(void *arg, const char* key, void* item);
@@ -166,7 +166,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
         //send quit message to existing spectator if applicable
         if (masterGame_getContainsSpectator(mg)) {
-            participant_t* part = masterGame_getPart(mg, '$');
+            //participant_t* part = masterGame_getPart(mg, '$');
             addrId_t* addrId = malloc(sizeof(addressId_t));
             addrId->id = '$';
             findAddressGivenId(setMg, addrId);
