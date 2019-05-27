@@ -409,10 +409,11 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
       point_t * partLoc = point_new(point_getX(participant_getLoc(part)), point_getY(participant_getLoc(part)));
       char id = participant_getId(part);
       char * realName = participant_getRealName(part);
-      char * realNameCopy = malloc((strlen(realName) + 1));
+      char * realNameCopy = malloc(strlen(realName)+1);
       strcpy(realNameCopy, realName);
       partCopy = participant_new(partLoc, mg->map, id, true, realNameCopy);
       participant_setPurse(partCopy, participant_getPurse(part));
+      free(realNameCopy);
       
       set_t* removedPlayers = mg->removedPlayers;
       set_insert(removedPlayers, &removedPlayerId, partCopy);
@@ -451,10 +452,11 @@ static void removePartHelper(void *arg, const char *key, void * item)
     }
     else{
       isPlayer = true;
-      char * realNameCopy = malloc(strlen(realName) + 1);
+      char * realNameCopy = malloc((strlen(realName)+1)*sizeof(char));
       strcpy(realNameCopy, realName);
       partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, realNameCopy);
       participant_setPurse(partCopy, participant_getPurse(item));
+      free(realNameCopy);
     }
     if(!set_insert(setUpdater->updatedSet, &id, partCopy)){
       participant_delete(partCopy);
