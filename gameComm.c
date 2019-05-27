@@ -77,31 +77,36 @@ int randomGen(int seed, int min, int upper);
 /************* main ************/
 int main(const int argc, char * argv[])
 {
+    //validating arguments
     if(argc < 2 || argc > 3){
         fprintf(stderr, "usage: ./server map.txt [seed]\n");
         return 1;
     } else {
+        //if caller does not provide a seed
         int seed;
         if (argc == 3) {
             seed = strtod(argv[2], NULL);
         } else {
             seed = -1;
         }
-        set_t* partToAddress = set_new();
+        //set_t* partToAddress = set_new();
+
+        //initializing modules/variables to use in game
         int portnumber = message_init(stderr);
-        printf("%d\n", portnumber);
-        //map_t * map = map_new(argv[1], MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
+        printf("Ready for client to connect to %d...\n", portnumber);
+        
+        //masterGame contains functionality for all game methods
         masterGame_t* mastergame = masterGame_new(argv[1], seed); 
-        if (masterGame_getMap(mastergame) == NULL) {
-            fprintf(stderr, "Map was not correctly initialized...\n");
+        if (mastergame == NULL || masterGame_getMap(mastergame) == NULL) {
+            fprintf(stderr, "Modules were not correctly initialized...\n");
             return 1;
         } else {
-            //printf("%d\n", masterGame_getPlayerCount(mg));
-
+            //passes set mastergame structure so that message_loop has access to them
             setMg_t* setMg = malloc(sizeof(setMg_t));
-            setMg->set = partToAddress;
+            //setMg->set = partToAddress;
             setMg->mg = mastergame;
             setMg->index = 0;
+
             message_loop(setMg, handleInput, handleMessage);
         }
     }   
@@ -112,17 +117,17 @@ handleInput(void * arg)
     return true;
 }
 
+/* handleMessage is a helper method for message_loop -- handles different commands passed
+*
+*/
 
 static bool
 handleMessage(void * arg, const addr_t from, const char * message)
 {
-    //&from is pointer to the address of the client that is sending message
-    //addr_t *addr = &from;
-
     setMg_t* setMg = arg;
     masterGame_t* mg = setMg->mg;
     map_t* map = masterGame_getMap(mg);
-    set_t* partToAddress = setMg->set;
+    //set_t* partToAddress = setMg->set;
     
     int numberWords = 0;
 	char delim[] = " ";
@@ -298,24 +303,13 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     return false;
                 }
 
-                //sending updated gold message
-                // int collected = (participant_getPurse(part))-currPurse;
-                // char goldMessage[100];
-                // sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
-
                 set_t* activeParticipants = masterGame_getActiveParticipants(mg);
 
                 displayGoldDataToAll(setMg, id, currPurse, map, activeParticipants);
-                //message_send(from, goldMessage);
 
                 //sending updated map data
-
-                printf("hellloooo\n");
                 displayMapDataToAll(setMg, activeParticipants);
 
-                // char* displayMessage = displayMapData(mg, part);
-                // message_send(from, displayMessage);
-                // free(displayMessage);
                 
             }
         }
@@ -384,6 +378,13 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
     if (setMg != NULL) {
         
         int index = setMg->index;
+        char* summary = masterGame_endGame(setMg->mg);
+
+        //creating gameover message in correct format to send to each client
+        char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
+        strcpy(message, "GAMEOVER\n");
+        strcat(message, summary);
+        printf("%s\n", message);
         for (int i = 0; i < index; i++) {
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
@@ -391,18 +392,20 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
                 participant_t* part = masterGame_getPart(setMg->mg, id);
                 bool exists = findWithSetValue(activeParticipants, part);
                 if (exists) {
-                    char* summary = masterGame_endGame(setMg->mg);
+                    // char* summary = masterGame_endGame(setMg->mg);
 
-                    //creating gameover message in correct format to send to each client
-                    char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
-                    strcpy(message, "GAMEOVER\n");
-                    strcat(message, summary);
+                    // //creating gameover message in correct format to send to each client
+                    // char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
+                    // strcpy(message, "GAMEOVER\n");
+                    // strcat(message, summary);
                     //printf("summary %s", summary);
                     message_send(setMg->addrIds[i]->addr, message);
                 }
                 
             }
         }
+        free(message);
+        free(summary);
     }
 }
 
@@ -425,29 +428,29 @@ findWithSetValue_helper(void *arg, const char* key, void *item)
     }
 }
 
-void
-iterate_gameOver(void *arg, const char* key, void *item)
-{
-    //need setMg because iterate helper only takes in one arg
-    setMg_t* setMg = arg;
-    set_t* partToAddress = setMg->set;
+// void
+// iterate_gameOver(void *arg, const char* key, void *item)
+// {
+//     //need setMg because iterate helper only takes in one arg
+//     setMg_t* setMg = arg;
+//     set_t* partToAddress = setMg->set;
 
-    //returns address of individual participant that is active
-    addr_t* addrP = set_find(partToAddress, key);
-    char* summary = masterGame_endGame(setMg->mg);
+//     //returns address of individual participant that is active
+//     addr_t* addrP = set_find(partToAddress, key);
+//     char* summary = masterGame_endGame(setMg->mg);
 
-    //creating gameover message in correct format to send to each client
-    char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
-    strcpy(message, "GAMEOVER\n");
-    strcat(message, summary);
+//     //creating gameover message in correct format to send to each client
+//     char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
+//     strcpy(message, "GAMEOVER\n");
+//     strcat(message, summary);
 
-    //sends message based on address obtained from partToAddress set
-    message_send(*addrP, message);
+//     //sends message based on address obtained from partToAddress set
+//     message_send(*addrP, message);
 
-    //frees up allocated memory
-    free(message);
+//     //frees up allocated memory
+//     free(message);
 
-}
+// }
 
 char*
 displayMapData(masterGame_t* mg, participant_t* part)
@@ -540,16 +543,16 @@ findAddressGivenId(setMg_t* setMg, addrId_t* addrId)
     }
 }
 
-void
-iterate_partToAddress(void *arg, const char* key, void* item)
-{
-    addressId_t* addrId = arg;
-    char currId = (char) *key;
-    if (addrId->id == currId) {
-        addr_t* addrP = item;
-        addrId->addrP = addrP;
-    }
-}
+// void
+// iterate_partToAddress(void *arg, const char* key, void* item)
+// {
+//     addressId_t* addrId = arg;
+//     char currId = (char) *key;
+//     if (addrId->id == currId) {
+//         addr_t* addrP = item;
+//         addrId->addrP = addrP;
+//     }
+// }
 
 
 
@@ -568,29 +571,29 @@ findIdGivenAddress(addr_t addr, setMg_t* setMg)
     return '\0';
 }
 
-static char
-findId(set_t* partToAddress, addr_t* addrP)
-{
-    addressId_t* addrId = malloc(sizeof(addressId_t));
-    addrId->addrP = addrP;
-    addrId->id = '\0';
-    set_iterate(partToAddress, addrId, findId_helper);
+// static char
+// findId(set_t* partToAddress, addr_t* addrP)
+// {
+//     addressId_t* addrId = malloc(sizeof(addressId_t));
+//     addrId->addrP = addrP;
+//     addrId->id = '\0';
+//     set_iterate(partToAddress, addrId, findId_helper);
     
-    return addrId->id;
-}
+//     return addrId->id;
+// }
 
-void
-findId_helper(void *arg, const char *key, void *item)
-{
-    addressId_t* addrId = arg;
-    addr_t* itemAddrP = item;
-    if (itemAddrP == addrId->addrP) {
-        char id = (char) *key;
-        printf("Here %p\n", item);
-        printf("Here2 %p\n", (void *) addrId->addrP);
-        addrId->id = id;
-    }
-}
+// void
+// findId_helper(void *arg, const char *key, void *item)
+// {
+//     addressId_t* addrId = arg;
+//     addr_t* itemAddrP = item;
+//     if (itemAddrP == addrId->addrP) {
+//         char id = (char) *key;
+//         printf("Here %p\n", item);
+//         printf("Here2 %p\n", (void *) addrId->addrP);
+//         addrId->id = id;
+//     }
+// }
 
 static addrId_t*
 addrId_new(char id, addr_t addr)
