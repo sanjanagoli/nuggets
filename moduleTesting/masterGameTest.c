@@ -1,7 +1,7 @@
-/*
- * masterGameTest.c - test program for the nuggets masterGame module
+/* 
+ * masterGameTest.c - Nuggets 'masterGame' module test program
  *
- * CS50, April 2019
+ * Dhaivat Mehta, Dartmouth College, 19S, COSC 050, Final Project - Nuggets
  */
 
 #include "../libcs50/set.h"
@@ -107,7 +107,7 @@ int main() {
 
     printf("\nCurrent player count: %d\n", masterGame_getPlayerCount(mg) );
     printf("\nAdd new player to game beyond capacity\n");
-    char failedEntrant = masterGame_addPart(mg, "rat");
+    masterGame_addPart(mg, "rat");
     printf("\nDisplay map after attempting to add in new participant. (No participant should have been added):\n");
     char * map6 = masterGame_displayMap(mg, masterGame_getPart(mg, '$'));
     printf("%s\n", map6);
