@@ -1,7 +1,6 @@
 # Maps
 
 This directory contains maps for the Nuggets game.
-Feel free to add your own.
 
 * `main.txt`: an interesting map for playing and testing.
 
@@ -13,4 +12,4 @@ Feel free to add your own.
 
 * `hole.txt`: a version of main with a large hole in the middle of one room
 
-* `weirdtunnels.txt`: our new map which features winding, disorienting tunnels.
+* `maptest.txt`: This is a map created by our team and contains several rooms, walls, and tunnels. This map was used to thoroughly check visibility functionality.
