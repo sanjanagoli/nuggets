@@ -338,7 +338,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
         }
 
         //if there are no more nuggets remaining in the game, quit out
-        if (map_nugsRemaining(map) <= 240) {
+        if (map_nugsRemaining(map) == 0) {
             //send all the participants that are currently in the game the gameover message
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
             displayGameOver(activeParticipants, setMg);
@@ -356,7 +356,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
         //if there are no more nuggets remaining in the game, quit out
         message_send(from, "NO...not a valid message from client");
         //still check if the game is over as determined by the number of nuggets
-        if (map_nugsRemaining(map) <= 240) {
+        if (map_nugsRemaining(map) == 0) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
 
             displayGameOver(activeParticipants, setMg);
