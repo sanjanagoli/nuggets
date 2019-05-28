@@ -159,6 +159,7 @@ partAndIdHolder_t * partAndIdHolder_new(char id)
     return NULL;
   }
   else{
+    pH->part = NULL;
     pH->id = id;
     return pH;
   }
