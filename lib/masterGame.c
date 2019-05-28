@@ -328,7 +328,12 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
     mg->containsSpectator = true;
   }
   char partId = participant_getId(part);
-  set_insert(mg->participants, &partId, part);
+
+  char str[2];
+  str[0] = partId;
+  str[1] = '\0';
+
+  set_insert(mg->participants, str, part);
   return participant_getId(part);
 }
 
