@@ -50,7 +50,7 @@ test: $(PROG) $(PPROG)
 	bash -v testing.sh
 
 valgrind: $(PROG)
-	valgrind ./$(PROG); valgrind ./$(PPROG)
+	valgrind ./$(PROG); valgrind ./$(PPROG); valgrind ./$(PPPROG); valgrind ./$(PPPPROG)
 
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
