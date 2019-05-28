@@ -70,6 +70,7 @@ static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y);
 static bool isWallChar(char c);
 static void pointDeleteHelper(void *item);
 static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *item);
+static void countHelper(void *arg, const char *key, void *item);
 
 // #############################################################################
 // Global Functions
@@ -140,6 +141,21 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   char* mapFromFile = freadfilep(dataPointer);
   map->mapData = mapFromFile;
   fclose(dataPointer);
+  
+  set_t* emptySpaces = map_getEmptySpots(map);
+  int emptySpacesCount = 0;
+  set_iterate(emptySpaces, &emptySpacesCount, countHelper);
+  if (emptySpacesCount - 26 < maxPiles) {
+    free(map->mapData);
+    free(map);
+    fprintf(stderr, "Map too small.");
+    set_delete(consumedNugs, NULL);
+    set_delete(nuggetLocs, NULL);
+    set_delete(emptySpaces, pointDeleteHelper);
+    return NULL;
+  }
+  set_delete(emptySpaces, pointDeleteHelper);
+  
   map->consumedNugs = consumedNugs;
   map->nuggetLocs = nuggetLocs;
   map->nugsRemaining = goldTotal;
@@ -149,6 +165,7 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
     map_delete(map);
     return NULL;
   }
+  
 
   return map;
 }
@@ -540,4 +557,11 @@ static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *i
       point_delete(p);
     }
   }
+}
+
+/**************** countHelper ****************/
+// Determines the number of items in a set
+static void countHelper(void *arg, const char *key, void *item) {
+  int* count = arg;
+  (*count)++;
 }

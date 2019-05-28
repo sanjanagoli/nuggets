@@ -23,7 +23,7 @@ int main() {
   int maxPiles = 15;
   int seed = 5;
 
-  printf("\nCreating map with (should not create because piles > gold):\n");
+  printf("\nCreating map (should not create because piles > gold):\n");
   printf("\tMap data from: %s\n", path);
   printf("\tmaxBytes: %i\n", maxBytes);
   printf("\tgoldTotal: 1\n");
@@ -31,6 +31,20 @@ int main() {
   printf("\tmaxPiles: 10\n");
   printf("\tseed: %i\n", seed);
   map_t* invalidMap = map_new(path, maxBytes, 1, 5, 10, seed);
+  if (invalidMap == NULL) {
+    printf("\nCould not create map\n");
+  } else {
+    map_delete(invalidMap);
+  }
+  
+  printf("\nCreating map (should not create because maxpiles > empty spaces):\n");
+  printf("\tMap data from: %s\n", path);
+  printf("\tmaxBytes: %i\n", maxBytes);
+  printf("\tgoldTotal: 1\n");
+  printf("\tminPiles: 5\n");
+  printf("\tmaxPiles: 10000\n");
+  printf("\tseed: %i\n", seed);
+  invalidMap = map_new(path, maxBytes, 1, 5, 10000, seed);
   if (invalidMap == NULL) {
     printf("\nCould not create map\n");
   } else {
