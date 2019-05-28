@@ -59,7 +59,6 @@ static bool handleInput(void * arg);
 char* displayMapData(masterGame_t* mg, participant_t* part);
 static addrId_t* addrId_new(char id, addr_t addr);
 char findIdGivenAddress(addr_t addr, setMg_t* setMg);
-void sendMessageToAll(setMg_t* setMg, char* message);
 void displayMapDataToAll(setMg_t* mg, set_t* activeParticipants);
 static void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants);
 void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
@@ -69,9 +68,8 @@ void displayGameOver(set_t* activeParticipants, setMg_t* setMg);
 setMg_t* setMg_new(masterGame_t* mg, int index);
 void free_addrIds(setMg_t* setMg);
 
-int randomGen(int seed, int min, int upper);
 
-/************* main ************/
+/************* main *******************/
 int main(const int argc, char * argv[])
 {
     //validating arguments
@@ -86,7 +84,6 @@ int main(const int argc, char * argv[])
         } else {
             seed = -1;
         }
-        //set_t* partToAddress = set_new();
 
         //initializing modules/variables to use in game
         int portnumber = message_init(stderr);
@@ -98,21 +95,10 @@ int main(const int argc, char * argv[])
             fprintf(stderr, "Modules were not correctly initialized...\n");
             return 1;
         } else {
-            //passes set mastergame structure so that message_loop has access to them
-
+            //uses/passes set mastergame structure so that message_loop has access to them
             setMg_t* setMg = setMg_new(mastergame, 0);
-            // setMg_t* setMg = malloc(sizeof(setMg_t));
-            // //setMg->set = partToAddress;
-           
 
             if (setMg != NULL) {
-            // //     setMg->mg = NULL;
-            // //     setMg->mg = mastergame;
-            // //     setMg->index = 0;
-
-            // //     for (int i = 0; i < 26; i++) {
-            // //         setMg->addrIds[i] = NULL;
-            // //     }
                 message_loop(setMg, handleInput, handleMessage);
             }
         }
@@ -125,19 +111,27 @@ handleInput(void * arg)
     return true;
 }
 
-/* handleMessage is a helper method for message_loop -- handles different commands passedy
+/* handleMessage is a helper method for message_loop -- handles different commands
+*  passed from client, including SPECTATE, PLAY, and KEY. handleMessage uses an array
+*  of structs to store ids to addr, such that when one of the players sends a command,
+*  the server knows what user to send information back to specifically. Every time a player
+*  makes a move, each user is sent an updated map and updated gold message. Once all the gold nuggets
+*  have been collected, a GAMEOVER message will be printed on the server console as well as the remaining
+*  client consoles.
 *
+*  Returns true when message_loop should no longer be listening for messages, remains false as long as message_loop
+*  to continue
 */
 
 static bool
 handleMessage(void * arg, const addr_t from, const char * message)
 {
+    //initializing modules passed in through arg
     setMg_t* setMg = arg;
     masterGame_t* mg = setMg->mg;
 
     map_t* map = masterGame_getMap(mg);
-    //set_t* partToAddress = setMg->set;
-    
+
     int numberWords = 0;
 	char delim[] = " ";
 		
@@ -149,7 +143,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
     strcpy(linecopy, line);
     char *count = strtok(linecopy, delim);
 
-    //determines how many words are in the query in order to correctly allocate array
+    //determines how many words are in the command in order to correctly allocate array
     while(count != NULL)
     {	
         count = strtok(NULL, delim);
@@ -178,10 +172,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
             addrId->id = '$';
             findAddressGivenId(setMg, addrId);
 
-            //set_iterate(partToAddress, addrId, iterate_partToAddress);
             if (addrId->id != '\0' && &(addrId->addr) != NULL) {
-                // addr_t existingSpec = *(addrId->addrP);
-                
                 message_send(addrId->addr, "QUIT");
                 free(addrId);
             }
@@ -221,6 +212,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
             strcat(mes, remaining); 
             message_send(from, mes);
             free(mes);
+    
         } else {
             message_send(from, "NO...spectator was not created correctly!\n");
         }
@@ -228,8 +220,10 @@ handleMessage(void * arg, const addr_t from, const char * message)
         free(line);
         return false;
 
+    //if a player joins (if a realName is given)
     } else if ( (words[0] != NULL) && (strcmp(words[0], "PLAY") == 0) ) {
         printf("message: %s\n", message);
+        //if there are more than the maxplayers that try to join
         if (masterGame_getPlayerCount(mg) >= MaxPlayers) {
             printf("max players reached %d\n", masterGame_getPlayerCount(mg));
             message_send(from, "NO");
@@ -257,6 +251,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     str[0] = id;
                     str[1] = '\0';
 
+                    //fomratting message correctly
                     strcat(mes, str);
                     message_send(from, mes);
                     free(mes);
@@ -267,7 +262,8 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     message_send(from, gridmessage);
 
                     set_t* activeParticipants = masterGame_getActiveParticipants(mg);
-                    //display message that is sent to clients (spectators can see everything)
+
+                    //display message that is sent to clients (spectators can see everything) - map and gold info
                     displayGoldDataToAll(setMg, id, 0, map, activeParticipants);
                     
                     displayMapDataToAll(setMg, activeParticipants);
@@ -285,10 +281,12 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
         //ensures that making these actions on a valid player (not spectator)
         if (words[1] != NULL && id != '\0') {
+            //if the client is a spectator, all it to send a Q command
             if (id == '$') {
                 if (strcmp(words[1], "Q") == 0) {
                     message_send(from, "QUIT");
                 }
+            //allow the gamePlayer to send a host of commands that allow it to move
             } else if (isalpha(id)) {
                 participant_t* part = masterGame_getPart(mg, id);
                 int currPurse = participant_getPurse(part);
@@ -318,6 +316,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     return false;
                 }
 
+                //activeParticipants contains pointers to players that are currently in the game
                 set_t* activeParticipants = masterGame_getActiveParticipants(mg);
                 displayGoldDataToAll(setMg, id, currPurse, map, activeParticipants);
 
@@ -327,12 +326,14 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 
             }
         } else if (id != '\0') {
+            free(line);
             return false;
         }
 
-        if (map_nugsRemaining(map) <= 200) {
+        //if there are no more nuggets remaining in the game, quit out
+        if (map_nugsRemaining(map) == 0) {
+            //send all the participants that are currently in the game the gameover message
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
-
             displayGameOver(activeParticipants, setMg);
             masterGame_delete(setMg->mg);
             free_addrIds(setMg);
@@ -345,8 +346,10 @@ handleMessage(void * arg, const addr_t from, const char * message)
         }
 
     } else {
+        //if there are no more nuggets remaining in the game, quit out
         message_send(from, "NO...not a valid message from client");
-        if (map_nugsRemaining(map) <= 200) {
+        //still check if the game is over as determined by the number of nuggets
+        if (map_nugsRemaining(map) == 0) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
 
             displayGameOver(activeParticipants, setMg);
@@ -361,6 +364,12 @@ handleMessage(void * arg, const addr_t from, const char * message)
         }
     }
 }
+
+/*  displayGameOver takes a set of participants that are still playing the game and sends a display of results
+*   to all of these clients, skips over players that have already exited the game 
+*   Calls masterGame_endGame which returns a formatted list of the scoreboard from the game in format specified by
+*   requirements spec
+*/
 
 void
 displayGameOver(set_t* activeParticipants, setMg_t* setMg)
@@ -375,10 +384,13 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
         strcpy(message, "GAMEOVER\n");
         strcat(message, summary);
         printf("%s\n", message);
+
+        //loops through all of the addresses stored during the game
         for (int i = 0; i < index; i++) {
+            //addrIds contains structs of all character to address pairings
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
-                
+                //determines if the participant is contained in activeParticipants --> send message if so
                 participant_t* part = masterGame_getPart(setMg->mg, id);
                 bool exists = findWithSetValue(activeParticipants, part);
                 if (exists) {
@@ -391,6 +403,13 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
         free(summary);
     }
 }
+
+/*  findWithSetValue loops through set and compares the participant to the item to determine if the participant
+*   is stored within the set; if so, return true; else, return false
+* 
+*   utilizes partBool in order to assist with iteration --> partBool->exists stores whether the
+*   specified participants exists in the given set
+*/
 
 static bool
 findWithSetValue(set_t* set, participant_t* part)
@@ -414,6 +433,7 @@ findWithSetValue(set_t* set, participant_t* part)
     }
 }
 
+/* helper for iteration -- takes in struct with participant and bool */
 void
 findWithSetValue_helper(void *arg, const char* key, void *item)
 {
@@ -424,13 +444,16 @@ findWithSetValue_helper(void *arg, const char* key, void *item)
     }
 }
 
+/* setMg_new allocates memory for a new setMg 
+*  returns a pointer to setMg_t
+*  initializes values for each of the elements in setMg
+*/
 setMg_t*
 setMg_new(masterGame_t* mg, int index)
 {
     
     setMg_t* setMg = malloc(sizeof(setMg_t));
     if (setMg != NULL && mg != NULL) {
-        //setMg->mg = NULL;
         setMg->mg = mg;
         setMg->index = 0;
 
@@ -443,6 +466,10 @@ setMg_new(masterGame_t* mg, int index)
     }
 }
 
+/* displayMapData concatenates different elements of the map data command into a properly formatted string
+*  takes in masterGame to use masterGame_displayMap, which uses participant's set of visible points to provide the
+*  client with the relevant map
+*/
 char*
 displayMapData(masterGame_t* mg, participant_t* part)
 {
@@ -453,29 +480,40 @@ displayMapData(masterGame_t* mg, participant_t* part)
     return displayMessage;
 }
 
+/* displayGoldDataToAll concatenates different elements of the gold data command into a properly formatted string
+*  takes in masterGame and uses participant_getPurse to determine how many gold nuggets were just collected and how many
+*  the player already had to create message
+*
+*  sends every participant's map to each specified participant
+*/
 static void
 displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants)
 {
     if (setMg != NULL && setMg->mg != NULL && setMg->addrIds != NULL) {
         int index = setMg->index;
+        //loops through each of the addrId structures stored in array to send to all relevant clients
         for (int i = 0; i < index; i++) {
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
                 participant_t* part = NULL;
                 if (masterGame_getPart(setMg->mg, id) != NULL) {
+                    //gets participant given id as determined by addrIds and index
                     part = masterGame_getPart(setMg->mg, id);
                 }
-                //participant_t* part = masterGame_getPart(setMg->mg, id);
                 if (part != NULL) {
+                    //if the client is still playing the game
                     bool exists = findWithSetValue(activeParticipants, part);
                     if (exists) {
                         int collected = (participant_getPurse(part))-currPurse;
                         if (id != givenId) {
                             collected = 0;
                         }
+                        //creates goldmessage in properly formatted way as specified by Requirements Spec
                         char goldMessage[100];
                         sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
                         addr_t address = setMg->addrIds[i]->addr;
+
+                        //spends message to the address determined by the array index
                         message_send(address, goldMessage);
                     }
                 }
@@ -485,6 +523,12 @@ displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, se
 
 }
 
+/* displayMapDataToAll concatenates different elements of the map data command into a properly formatted string
+*  takes in masterGame and uses masterGame_displayMap, which uses participant's set of visible points to provide the
+*  client with the relevant map
+*
+*  sends every participant's map to each specified participant
+*/
 void
 displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
 {
@@ -495,10 +539,12 @@ displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
             char id = '\0';
             id = setMg->addrIds[i]->id;
             if (id != '\0') {
+                //gets participant given id as determined by addrIds and index
                 participant_t* part = masterGame_getPart(mg, id);
                 bool exists = findWithSetValue(activeParticipants, part);
                 if (exists) {
-                    
+                    //creates map message in properly formatted way as specified by Requirements Spec
+                    //display map returns map based on player's visible points
                     char* mapdata = masterGame_displayMap(setMg->mg, part);
                     char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
                     strcpy(displayMessage, "DISPLAY\n");
@@ -514,18 +560,11 @@ displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
     }
 }
 
-void
-sendMessageToAll(setMg_t* setMg, char* message)
-{
-    if (message != NULL && setMg != NULL) {
-        int index = setMg->index;
-        for (int i = 0; i < index; i++) {
-            addr_t address = setMg->addrIds[i]->addr;
-            message_send(address, message);
-        }
-    }
-}
-
+/* findAddressGivenId: iterates through array of addrIds and returns the address that corresponds to a passed in id
+*  as stored in addrId
+*
+*  stores address in addrId
+*/
 void
 findAddressGivenId(setMg_t* setMg, addrId_t* addrId)
 {
@@ -542,7 +581,11 @@ findAddressGivenId(setMg_t* setMg, addrId_t* addrId)
     }
 }
 
-
+/* findIdGivenAddress: iterates through array of addrIds and returns the id that corresponds to a passed in address
+*  as stored in addrId
+*
+*  stores id in addrId that can be accessed by caller
+*/
 char
 findIdGivenAddress(addr_t addr, setMg_t* setMg)
 {   
@@ -561,7 +604,9 @@ findIdGivenAddress(addr_t addr, setMg_t* setMg)
     return '\0';
 }
 
-
+/* helper method to initialize addrId struct
+*  returns pointer to newly allocated addrId
+*/
 static addrId_t*
 addrId_new(char id, addr_t addr)
 {
@@ -575,6 +620,9 @@ addrId_new(char id, addr_t addr)
     }
 }
 
+/* helper method to free pointers to addrId structs stored in array
+*  only will free if the addrId pointer to addrId is not null
+*/
 void
 free_addrIds(setMg_t* setMg)
 {
