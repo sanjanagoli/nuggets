@@ -412,10 +412,12 @@ set_t* map_getEmptySpots(map_t* map) {
 /**************** map_delete ****************/
 /* see map.h for description */
 void map_delete(map_t* map) {
-  set_delete(map->nuggetLocs, pointDeleteHelper);
-  set_delete(map->consumedNugs, pointDeleteHelper);
-  free(map->mapData);
-  free(map);
+  if (map != NULL) {
+    set_delete(map->nuggetLocs, pointDeleteHelper);
+    set_delete(map->consumedNugs, pointDeleteHelper);
+    free(map->mapData);
+    free(map);
+  }
 }
 
 // #############################################################################
