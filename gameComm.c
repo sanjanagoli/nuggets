@@ -16,12 +16,7 @@
 #include "./lib/point.h"
 
 /************* global variables ************/
-static const int MaxBytes = 65507;     // max number of bytes in a message
-static const int MaxNameLength = 50;   // max number of chars in playerName
 static const int MaxPlayers = 26;      // maximum number of players
-static const int GoldTotal = 250;      // amount of gold in the game
-static const int GoldMinNumPiles = 10; // minimum number of gold piles
-static const int GoldMaxNumPiles = 30; // maximum number of gold piles
 
 /************* local types ************/
 typedef struct addressId {
@@ -94,6 +89,9 @@ int main(const int argc, char * argv[])
         masterGame_t* mastergame = masterGame_new(argv[1], seed); 
         if (mastergame == NULL || masterGame_getMap(mastergame) == NULL) {
             fprintf(stderr, "Modules were not correctly initialized...\n");
+            if (masterGame != NULL) {
+                masterGame_delete(masterGame);
+            }
             return 1;
         } else {
             //uses/passes set mastergame structure so that message_loop has access to them
