@@ -167,7 +167,8 @@ handleMessage(void * arg, const addr_t from, const char * message)
         //send quit message to existing spectator if applicable
         if (masterGame_getContainsSpectator(mg)) {
             //participant_t* part = masterGame_getPart(mg, '$');
-            addrId_t* addrId = malloc(sizeof(addressId_t));
+            printf("reached this point\n");
+            addrId_t* addrId = malloc(sizeof(addrId_t));
             addrId->id = '$';
             findAddressGivenId(setMg, addrId);
 
@@ -205,7 +206,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
             //send gold message when new spectator joins -- always has p=0 and n=0
             //include nuggets remaining integer using map module method
-            char *mes = malloc((strlen("GOLD 0 0 rr")+1)*sizeof(char));
+            char *mes = malloc((strlen("GOLD 0 0 rr")+2)*sizeof(char));
             strcpy(mes, "GOLD 0 0 ");
             char remaining[2];
             sprintf(remaining, "%d", map_nugsRemaining(map));
@@ -237,9 +238,15 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     setMg->addrIds[setMg->index] = addrId;
                     setMg->index = setMg->index+1;
                     printf("inserted port: %d\n", ntohs(from.sin_port));
-                    char* mes = malloc((strlen("OK L")+1)*sizeof(char)); 
+                    char* mes = malloc((strlen("OK L")+2)*sizeof(char)); 
                     strcpy(mes, "OK ");
-                    strcat(mes, &id);
+                    
+                    //to be represented as a string for strcat function below
+                    char str[2];
+                    str[0] = id;
+                    str[1] = '\0';
+
+                    strcat(mes, str);
                     message_send(from, mes);
                     free(mes);
 
@@ -413,17 +420,24 @@ static bool
 findWithSetValue(set_t* set, participant_t* part)
 {
     partBool_t* partBool = malloc(sizeof(partBool_t));
-    partBool->part = part;
-    partBool->exists = false;
-    set_iterate(set, partBool, findWithSetValue_helper);
-    return partBool->exists;
+    if (partBool != NULL && part != NULL) {
+        partBool->part = part;
+        partBool->exists = false;
+        if (partBool->part != NULL) {
+            set_iterate(set, partBool, findWithSetValue_helper);
+        }
+        return partBool->exists;
+    } else {
+        return false;
+    }
 }
 
 void
 findWithSetValue_helper(void *arg, const char* key, void *item)
 {
     partBool_t* partBool = arg;
-    if (partBool->part == item) {
+    participant_t* part = partBool->part;
+    if (part == item) {
         partBool->exists = true;
     }
 }
@@ -471,16 +485,18 @@ displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, se
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
                 participant_t* part = masterGame_getPart(setMg->mg, id);
-                bool exists = findWithSetValue(activeParticipants, part);
-                if (exists) {
-                    int collected = (participant_getPurse(part))-currPurse;
-                    if (id != givenId) {
-                        collected = 0;
+                if (part != NULL) {
+                    bool exists = findWithSetValue(activeParticipants, part);
+                    if (exists) {
+                        int collected = (participant_getPurse(part))-currPurse;
+                        if (id != givenId) {
+                            collected = 0;
+                        }
+                        char goldMessage[100];
+                        sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
+                        addr_t address = setMg->addrIds[i]->addr;
+                        message_send(address, goldMessage);
                     }
-                    char goldMessage[100];
-                    sprintf(goldMessage, "GOLD %d %d %d", collected, participant_getPurse(part), map_nugsRemaining(map));
-                    addr_t address = setMg->addrIds[i]->addr;
-                    message_send(address, goldMessage);
                 }
             }
         }
@@ -536,6 +552,7 @@ findAddressGivenId(setMg_t* setMg, addrId_t* addrId)
             char id = setMg->addrIds[i]->id;
             if (id != '\0') {
                 if (addrId->id == id) {
+                    printf("here::: %c\n", addrId->id);
                     addrId->addr = setMg->addrIds[i]->addr;
                 }
             }
