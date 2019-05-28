@@ -403,6 +403,12 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
   }
   else{
     char removedPlayerId = participant_getId(part);
+
+    char str[2];
+    str[0] = removedPlayerId;
+    str[1] = '\0';
+
+
     if (removedPlayerId != '$') {
       participant_t * partCopy;
       point_t * partLoc = point_new(point_getX(participant_getLoc(part)), point_getY(participant_getLoc(part)));
@@ -415,7 +421,7 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
       free(realNameCopy);
       
       set_t* removedPlayers = mg->removedPlayers;
-      set_insert(removedPlayers, &removedPlayerId, partCopy);
+      set_insert(removedPlayers, str, partCopy);
     }
     else{
       mg->containsSpectator = false;
@@ -443,6 +449,11 @@ static void removePartHelper(void *arg, const char *key, void * item)
     participant_t * partCopy;
     point_t * partLoc = point_new(point_getX(participant_getLoc(item)), point_getY(participant_getLoc(item)));
     char id = *key;
+    
+    char str[2];
+    str[0] = id;
+    str[1] = '\0';
+
     bool isPlayer;
     char * realName = participant_getRealName(item);
     if(realName == NULL){
@@ -463,7 +474,7 @@ static void removePartHelper(void *arg, const char *key, void * item)
       
       free(realNameCopy);
     }
-    if(!set_insert(setUpdater->updatedSet, &id, partCopy)){
+    if(!set_insert(setUpdater->updatedSet, str, partCopy)){
       participant_delete(partCopy);
     }
   }
