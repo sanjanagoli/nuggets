@@ -878,7 +878,11 @@ participant_t * masterGame_getPart(masterGame_t * mg, char id)
   set_iterate(mg->participants, ph, getPartHelper);
   participant_t * part = ph->part;
   partAndIdHolder_delete(ph, participantsSetDeleteHelper);
-  return part;
+  if (part != NULL) {
+    return part;
+  } else {
+    return NULL;
+  }
 }
 
 static void getPartHelper(void *arg, const char *key, void *item)
@@ -918,3 +922,4 @@ static void pointDeleteHelper(void *item) {
     point_delete(item);
   }
 }
+
