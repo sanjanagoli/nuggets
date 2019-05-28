@@ -309,6 +309,34 @@ bool masterGame_getContainsSpectator(masterGame_t * mg);
 ```
 Returns a boolean value indicating whether or not the master game currently contains a spectator.
 
+#### **gameComm**
+note: gameComm is our 'server' and therefore has no global functions called by other files; all the functions listed below are local functions used by gameComm internally  
+
+```c
+static bool handleMessage(void * arg, const addr_t from, const char * message);
+```
+A helper function is passed into `message_loop` to deal with various messages, such as `SPECTATE`, `PLAY realname`, and `KEY k`.
+
+```c
+void sendMessageToAll(setMg_t* setMg, char* message);
+```
+A function that is used to send a message to all connected participants. 
+
+```c
+void displayMapDataToAll(setMg_t* mg, set_t* activeParticipants);
+```
+A function used to display the map data to all of the currently active participants.
+
+```c
+void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants);
+```
+A function used to display information about remaining gold data to all participants.
+
+```c
+void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
+```
+A function that is used to find the game id associated with a given address.
+
 ### **Error Handling and Recovery**
 
 In order to handle boundary cases/error, the program will be thoroughly tested with test cases listed below. Additionally, messages will be displayed to server and client when error occurs. 
