@@ -97,6 +97,16 @@ char map_getChar(map_t* map, int x, int y);
 Returns a char representing what is present at a specified x and y coordinate on the map. Returns '\0' if the specified location is invalid.
 
 ```c
+int map_getRows(map_t* map);
+```
+Returns a int representing the number of rows in the map.
+
+```c
+int map_getCols(map_t* map);
+```
+Returns a int representing the number of columns in the map.
+
+```c
 bool map_isEmptySpot(map_t* map, int x, int y);
 ```
 Returns a boolean representing whether or not the character at the specified x and y coordinate is an empty spot, '.', or not.
@@ -228,6 +238,11 @@ void participant_print(participant_t* part, FILE* fp);
 ```
 Prints the data encapsulated by the participant struct to a specified file.
 
+```c
+void participant_setVisibility(participant_t * part, set_t * visiblePoints);
+```
+Sets the visible points for the given participant to the given set of visible points.
+
 #### **masterGame**  
 ```c
 masterGame_t * masterGame_new(char * pathname, int seed)
@@ -235,9 +250,10 @@ masterGame_t * masterGame_new(char * pathname, int seed)
 Initialize a new game for a given map (pathname) and seed if not -1
 
 ```c
-bool masterGame_addPart(masterGame_t * mg, char * playerRealName)
+char masterGame_addPart(masterGame_t * mg, char * playerRealName)
 ```
-Initializes and adds a participant to a game. Return a bool representing whether or not the participant was successfully added.
+Initializes and adds a participant to a game. Return a char representing the game id of the participant just added.
+
 ```c
 bool masterGame_removePart(masterGame_t* mg, participant_t* part)
 ```
@@ -246,11 +262,12 @@ Removes a participant from a game. Return a bool representing whether or not the
 ```c
 bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
 ```
-Moves a participant by a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Returns a bool representing if move was succesful.
+Moves a participant by a given x and y value. If new location has nuggets then they are added to player's purse and consumed. If new location contains another participant switches the locations of the two participants. Adds points newly visible from new location to participant's overall visibility. Returns a bool representing if move was succesful.
+
 ```c
 bool masterGame_setPartLoc(masterGame_t* mg, char id, int dx, int dy)
 ```
-Sets a participants location to a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Returns a bool representing if move was succesful.
+Sets a participants location to a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Adds points newly visible from new location to participant's overall visibility. Returns a bool representing if move was succesful.
 
 ```c
 int masterGame_getPlayerCount(masterGame_t * mg)
@@ -272,6 +289,26 @@ void masterGame_delete(masterGame_t * mg)
 ```
 Deletes a given game and frees all allocated memory.
 
+```c
+map_t * masterGame_getMap(masterGame_t * mg); 
+```
+Returns the base map stored in the master game.
+
+```c
+participant_t * masterGame_getPart(masterGame_t * mg, char id);
+```
+Returns the active participant associated with the given game id.
+
+```c
+set_t * masterGame_getActiveParticipants(masterGame_t * mg);
+```
+Returns the set of active participants. The key's for the set are game id's and the items are participants.
+
+```c
+bool masterGame_getContainsSpectator(masterGame_t * mg);
+```
+Returns a boolean value indicating whether or not the master game currently contains a spectator.
+
 ### **Error Handling and Recovery**
 
 In order to handle boundary cases/error, the program will be thoroughly tested with test cases listed below. Additionally, messages will be displayed to server and client when error occurs. 
@@ -286,7 +323,7 @@ Program does not create any lasting files -- will produce log of player movement
 
 ### **Security and Privacy Properties**
 
-Once `gameCom` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must give a unique identifier in order to clarify who is performing which action. 
+Once `gameCom` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must give a unique identifier (player's "real name") in order to clarify who is performing which action. 
 
 ### **Pseudocode**
 
