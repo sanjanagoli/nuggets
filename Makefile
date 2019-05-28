@@ -24,11 +24,6 @@ libraries:
 comm: $(OBJS) $(LIBS) $(LLIBS)
 	$(CC) $(CFLAGS) $(OBJS) $(LLIBS) $(LIBS) -o $(PROG)
 
-
-
-# $(PROG): $(OBJS) $(LIBS)
-# 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(PROG)
-
 gameComm.o: gameComm.c
 
 # to clean up all derived files
