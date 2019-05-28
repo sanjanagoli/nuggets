@@ -14,7 +14,7 @@ When all gold nuggets are collected, the game ends and a summary is printed.
 * `maps` -> subdirectory containing maps for testing/playing with
 * `lib` -> subdirectory containing essential modules used in running the internal game logic
 * `libcs50` -> subdirectory contianing utility modules from class 
-* `DESIGN.md` -> design specifications for the game
+* `DESIGNN.md` -> design specifications for the game
 * `IMPLEMENTATION.md` -> implementation details for the game
 * `TESTING.md` -> testing protocol for the game and its modules
 * `REQUIREMENTS.md` -> requirements specifications for the game
