@@ -159,6 +159,7 @@ partAndIdHolder_t * partAndIdHolder_new(char id)
     return NULL;
   }
   else{
+    pH->part = NULL;
     pH->id = id;
     return pH;
   }
@@ -877,7 +878,11 @@ participant_t * masterGame_getPart(masterGame_t * mg, char id)
   set_iterate(mg->participants, ph, getPartHelper);
   participant_t * part = ph->part;
   partAndIdHolder_delete(ph, participantsSetDeleteHelper);
-  return part;
+  if (part != NULL) {
+    return part;
+  } else {
+    return NULL;
+  }
 }
 
 static void getPartHelper(void *arg, const char *key, void *item)
