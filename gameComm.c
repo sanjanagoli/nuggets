@@ -162,7 +162,6 @@ handleMessage(void * arg, const addr_t from, const char * message)
     }
 
     if ( (words[0] != NULL) && (strcmp(words[0], "SPECTATE") == 0) ) {
-        printf("message: %s\n", message);
 
         //send quit message to existing spectator if applicable
         if (masterGame_getContainsSpectator(mg)) {
@@ -193,7 +192,6 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 setMg->spectatorIndex = setMg->index;
                 setMg->index = setMg->index+1;
             }
-            printf("inserted port: %d\n", ntohs(from.sin_port));
 
             //server responds to spectator with grid message
             char gridmessage[20];
@@ -229,10 +227,8 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
     //if a player joins (if a realName is given)
     } else if ( (words[0] != NULL) && (strcmp(words[0], "PLAY") == 0) ) {
-        printf("message: %s\n", message);
         //if there are more than the maxplayers that try to join
         if (masterGame_getPlayerCount(mg) >= MaxPlayers) {
-            printf("max players reached %d\n", masterGame_getPlayerCount(mg));
             message_send(from, "NO");
             free(line);
             return false;
@@ -249,7 +245,6 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     addrId_t* addrId = addrId_new(id, from);
                     setMg->addrIds[setMg->index] = addrId;
                     setMg->index = setMg->index+1;
-                    printf("inserted port: %d\n", ntohs(from.sin_port));
                     char* mes = malloc((strlen("OK L")+2)*sizeof(char)); 
                     strcpy(mes, "OK ");
                     
@@ -284,7 +279,6 @@ handleMessage(void * arg, const addr_t from, const char * message)
         //char id = findId(partToAddress, (addr_t *) &from);
         
         char id = findIdGivenAddress(from, setMg);
-        printf("char id: %c\n", id);
 
         //ensures that making these actions on a valid player (not spectator)
         if (words[1] != NULL && id != '\0') {
@@ -390,6 +384,7 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
         char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
         strcpy(message, "GAMEOVER\n");
         strcat(message, summary);
+        //prints this to server console as well
         printf("%s\n", message);
 
         //loops through all of the addresses stored during the game
@@ -425,6 +420,7 @@ findWithSetValue(set_t* set, participant_t* part)
     if (partBool != NULL) {
         if (part != NULL) {
             partBool->part = part;
+            //saves value in struct to be passed into set_iterate
             partBool->exists = false;
             if (partBool->part != NULL) {
                 set_iterate(set, partBool, findWithSetValue_helper);
@@ -542,6 +538,7 @@ displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
     if (setMg != NULL) {
         masterGame_t* mg = setMg->mg;
         int index = setMg->index;
+        //loop through all clients
         for (int i = 0; i < index; i++) {
             char id = '\0';
             id = setMg->addrIds[i]->id;
@@ -556,7 +553,10 @@ displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
                     char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
                     strcpy(displayMessage, "DISPLAY\n");
                     strcat(displayMessage, mapdata);
+
                     addr_t address = setMg->addrIds[i]->addr;
+
+                    //sends to obtained client as specified by its address
                     message_send(address, displayMessage);
                     free(mapdata);
                     free(displayMessage);
@@ -597,11 +597,13 @@ char
 findIdGivenAddress(addr_t addr, setMg_t* setMg)
 {   
     int index = setMg->index;
+    //obtains the port number of the address to allow for comparison (easier to compare integers)
     int givenPort = ntohs(addr.sin_port);
     
     for (int i = 0; i < index; i++) {
         addr_t address = setMg->addrIds[i]->addr;
         int elementPort = ntohs(address.sin_port); 
+        //if the port number of the given address matches the port number of the element in the array
         if (givenPort == elementPort) {
             return setMg->addrIds[i]->id;
         }
@@ -609,7 +611,7 @@ findIdGivenAddress(addr_t addr, setMg_t* setMg)
     return '\0';
 }
 
-/* helper method to initialize addrId struct
+/* addrId_new: helper method to initialize addrId struct
 *  returns pointer to newly allocated addrId
 */
 static addrId_t*
@@ -625,7 +627,7 @@ addrId_new(char id, addr_t addr)
     }
 }
 
-/* helper method to free pointers to addrId structs stored in array
+/* free_addrIds: helper method to free pointers to addrId structs stored in array
 *  only will free if the addrId pointer to addrId is not null
 */
 void
