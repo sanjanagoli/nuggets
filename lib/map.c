@@ -504,23 +504,52 @@ static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
   if (map != NULL && visPoints != NULL) {
     // Characters to add: -+|#
     
-    // Check diagonal corners around the point for '+'
-    for (int xinc = -1; xinc <= 1; xinc+=2) {
-      for (int yinc = -1; yinc <= 1; yinc+=2) {
-        if (map_getChar(map, x+xinc, y+yinc) == '+') {
-          point_t* p = point_new(x+xinc, y+yinc);
-          char* pS = point_toString(p);
-          if (set_insert(visPoints, pS, p) == false) {
-            point_delete(p);
-          }
-          free(pS);
+    // Check diagonal corners around the point for '+' (only exterior)
+    if (isWallChar(map_getChar(map, x, y-1)) && isWallChar(map_getChar(map, x-1, y))) {
+      if (map_getChar(map, x-1, y-1) == '+') {
+        point_t* p = point_new(x-1, y-1);
+        char* pS = point_toString(p);
+        if (set_insert(visPoints, pS, p) == false) {
+          point_delete(p);
         }
+        free(pS);
       }
     }
+    if (isWallChar(map_getChar(map, x, y+1)) && isWallChar(map_getChar(map, x+1, y))) {
+      if (map_getChar(map, x+1, y+1) == '+') {
+        point_t* p = point_new(x+1, y+1);
+        char* pS = point_toString(p);
+        if (set_insert(visPoints, pS, p) == false) {
+          point_delete(p);
+        }
+        free(pS);
+      }
+    }
+    if (isWallChar(map_getChar(map, x, y+1)) && isWallChar(map_getChar(map, x-1, y))) {
+      if (map_getChar(map, x-1, y+1) == '+') {
+        point_t* p = point_new(x-1, y+1);
+        char* pS = point_toString(p);
+        if (set_insert(visPoints, pS, p) == false) {
+          point_delete(p);
+        }
+        free(pS);
+      }
+    }
+    if (isWallChar(map_getChar(map, x, y-1)) && isWallChar(map_getChar(map, x+1, y))) {
+      if (map_getChar(map, x+1, y-1) == '+') {
+        point_t* p = point_new(x+1, y-1);
+        char* pS = point_toString(p);
+        if (set_insert(visPoints, pS, p) == false) {
+          point_delete(p);
+        }
+        free(pS);
+      }
+    }
+
     
-    // Check a "plus" area around the point for -|#
+    // Check a "plus" area around the point for -|#+
     for (int xinc = -1; xinc <= 1; xinc++) {
-      if (isWallChar(map_getChar(map, x+xinc, y))){
+      if (isWallChar(map_getChar(map, x+xinc, y)) || map_getChar(map, x+xinc,y) == '+'){
         point_t* p = point_new(x+xinc, y);
         char* pS = point_toString(p);
         if (set_insert(visPoints, pS, p) == false) {
@@ -530,7 +559,7 @@ static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
       }
     }
     for (int yinc = -1; yinc <= 1; yinc++) {
-      if (isWallChar((map_getChar(map, x, y+yinc)))) {
+      if (isWallChar((map_getChar(map, x, y+yinc))) || map_getChar(map, x,y+yinc) == '+') {
         point_t* p = point_new(x, y+yinc);
         char* pS = point_toString(p);
         if (set_insert(visPoints, pS, p) == false) {
