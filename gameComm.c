@@ -188,9 +188,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     free(addressId);
                     setMg->addrIds[setMg->spectatorIndex] = addrId;
                 }
-                printf("spectator not for the first time\n");
             } else {
-                printf("spectator for first time\n");
                 setMg->addrIds[setMg->index] = addrId;
                 setMg->spectatorIndex = setMg->index;
                 setMg->index = setMg->index+1;
@@ -599,7 +597,6 @@ char
 findIdGivenAddress(addr_t addr, setMg_t* setMg)
 {   
     int index = setMg->index;
-    printf("index: %d\n", index);
     int givenPort = ntohs(addr.sin_port);
     
     for (int i = 0; i < index; i++) {
@@ -609,7 +606,6 @@ findIdGivenAddress(addr_t addr, setMg_t* setMg)
             return setMg->addrIds[i]->id;
         }
     }
-    printf("givenPort: %d\n", givenPort);
     return '\0';
 }
 
