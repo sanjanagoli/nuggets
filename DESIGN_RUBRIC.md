@@ -6,7 +6,7 @@
 * (7/10) Decomposition and data structures.
 * (10/10) Plan for division of the work.
 
-## Document (/70)
+## Document (70/70)
 "Your design document shall describe the major design decisions, plan for testing, and the roles of each member of your group."
 
 ### Client (player/spectator)
@@ -17,7 +17,7 @@
 * (5/5) Dataflow through functions/modules
 * (5/5) Major data structures
 * (5/5) High-level pseudo code (plain English-like language) for logic/algorithmic flow
-* (/5) Testing plan, including unit tests, integration tests, system tests
+* (5/5) Testing plan, including unit tests, integration tests, system tests
 
 ### Server
 
