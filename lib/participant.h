@@ -101,4 +101,8 @@ void participant_delete(participant_t* part);
 */
 void participant_print(participant_t *part, FILE *fp);
 
+/*  Input: pointer to participant (part) and set of points that are visible to said participant (visiblePoints)
+    Functionality/output: frees the current visible point set in participant and replaces it with given visible points set
+*/
 void participant_setVisibility(participant_t * part, set_t * visiblePoints);
+

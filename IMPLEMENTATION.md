@@ -5,11 +5,44 @@
 Nuggets is a game where players can connect to a remote server and attempt to find piles of gold in a maze. Their visibility is limited by their current and previous locations; the game proceeds until all gold in the maze has been collected. Up to one spectator can join each game and watch the entire map, unhindered by visibility.
 
 ### **Data Structures**
-* *struct point*
-* *struct map*
-* *struct participant*
-* *struct masterGame*
-* *struct set*
+* *struct point*  
+Internal Definitions:
+    ```c
+    int x; -> x coordinate of the point
+    int y; -> y coordinate of the point
+    ```
+* *struct map*  
+Internal Definitions:
+   ```c
+    char* mapData; -> strong containing base map data
+    int nrows; -> numbers of rows in map
+    int ncols; -> number of columns in map
+    set_t* nuggetLocs; -> set containing points indicating location of nugget piles in map
+    set_t* consumedNugs; -> set containing points indicating location of consumed nugget piles map
+    int nugsRemaining; -> number of nuggest remaining
+    int pilesRemaining; -> number of nugget piles remaining
+    int avgValue; -> average value of each nugget pile
+    ```
+* *struct participant*  
+Internal Definitions:
+    ```c
+    point_t *location; -> current location of participant
+    map_t *map; -> base map
+    char id; -> game id of player (what they look like on map to other participants)
+    bool player; -> whether or not the participant is a player (as opposed to a spectator)
+    set_t *visiblePoints; -> the points that are visible to the participant on the map
+    int purse; -> the gold amount held by the participant
+    char * playerRealName; -> the participant's real name
+    ```
+* *struct masterGame*  
+Internal Definitions:
+    ```c
+    map_t * map; -> strong containing base map data
+    set_t * participants; -> set of participants currently active in the game
+    set_t * removedPlayers; -> set of players that were in game and then were removed
+    bool containsSpectator; -> boolean value indicating if the game has spectator currently active
+    int playerCount; -> number of active players in the game
+    ```
 
 ### **Function Prototypes**
 #### **point**  
@@ -95,6 +128,16 @@ Allocates space that the caller must use to free allocated data.
 char map_getChar(map_t* map, int x, int y);
 ```
 Returns a char representing what is present at a specified x and y coordinate on the map. Returns '\0' if the specified location is invalid.
+
+```c
+int map_getRows(map_t* map);
+```
+Returns a int representing the number of rows in the map.
+
+```c
+int map_getCols(map_t* map);
+```
+Returns a int representing the number of columns in the map.
 
 ```c
 bool map_isEmptySpot(map_t* map, int x, int y);
@@ -228,6 +271,11 @@ void participant_print(participant_t* part, FILE* fp);
 ```
 Prints the data encapsulated by the participant struct to a specified file.
 
+```c
+void participant_setVisibility(participant_t * part, set_t * visiblePoints);
+```
+Sets the visible points for the given participant to the given set of visible points.
+
 #### **masterGame**  
 ```c
 masterGame_t * masterGame_new(char * pathname, int seed)
@@ -235,9 +283,10 @@ masterGame_t * masterGame_new(char * pathname, int seed)
 Initialize a new game for a given map (pathname) and seed if not -1
 
 ```c
-bool masterGame_addPart(masterGame_t * mg, char * playerRealName)
+char masterGame_addPart(masterGame_t * mg, char * playerRealName)
 ```
-Initializes and adds a participant to a game. Return a bool representing whether or not the participant was successfully added.
+Initializes and adds a participant to a game. Return a char representing the game id of the participant just added.
+
 ```c
 bool masterGame_removePart(masterGame_t* mg, participant_t* part)
 ```
@@ -246,11 +295,12 @@ Removes a participant from a game. Return a bool representing whether or not the
 ```c
 bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
 ```
-Moves a participant by a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Returns a bool representing if move was succesful.
+Moves a participant by a given x and y value. If new location has nuggets then they are added to player's purse and consumed. If new location contains another participant switches the locations of the two participants. Adds points newly visible from new location to participant's overall visibility. Returns a bool representing if move was succesful.
+
 ```c
 bool masterGame_setPartLoc(masterGame_t* mg, char id, int dx, int dy)
 ```
-Sets a participants location to a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Returns a bool representing if move was succesful.
+Sets a participants location to a given x and y value. If new location has nuggets then they are added to player's purse and consumed. Adds points newly visible from new location to participant's overall visibility. Returns a bool representing if move was succesful.
 
 ```c
 int masterGame_getPlayerCount(masterGame_t * mg)
@@ -272,6 +322,54 @@ void masterGame_delete(masterGame_t * mg)
 ```
 Deletes a given game and frees all allocated memory.
 
+```c
+map_t * masterGame_getMap(masterGame_t * mg); 
+```
+Returns the base map stored in the master game.
+
+```c
+participant_t * masterGame_getPart(masterGame_t * mg, char id);
+```
+Returns the active participant associated with the given game id.
+
+```c
+set_t * masterGame_getActiveParticipants(masterGame_t * mg);
+```
+Returns the set of active participants. The key's for the set are game id's and the items are participants.
+
+```c
+bool masterGame_getContainsSpectator(masterGame_t * mg);
+```
+Returns a boolean value indicating whether or not the master game currently contains a spectator.
+
+#### **gameComm**
+note: gameComm is our 'server' and therefore has no global functions called by other files; all the functions listed below are local functions used by gameComm internally  
+
+```c
+static bool handleMessage(void * arg, const addr_t from, const char * message);
+```
+A helper function is passed into `message_loop` to deal with various messages, such as `SPECTATE`, `PLAY realname`, and `KEY k`.
+
+```c
+void sendMessageToAll(setMg_t* setMg, char* message);
+```
+A function that is used to send a message to all connected participants. 
+
+```c
+void displayMapDataToAll(setMg_t* mg, set_t* activeParticipants);
+```
+A function used to display the map data to all of the currently active participants.
+
+```c
+void displayGoldDataToAll(setMg_t* setMg, char givenId, int currPurse, map_t* map, set_t* activeParticipants);
+```
+A function used to display information about remaining gold data to all participants.
+
+```c
+void findAddressGivenId(setMg_t* setMg, addrId_t* addrId);
+```
+A function that is used to find the game id associated with a given address.
+
 ### **Error Handling and Recovery**
 
 In order to handle boundary cases/error, the program will be thoroughly tested with test cases listed below. Additionally, messages will be displayed to server and client when error occurs. 
@@ -286,7 +384,7 @@ Program does not create any lasting files -- will produce log of player movement
 
 ### **Security and Privacy Properties**
 
-Once `gameCom` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must give a unique identifier in order to clarify who is performing which action. 
+Once `gameComm` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must give a unique identifier (player's "real name") in order to clarify who is performing which action. 
 
 ### **Pseudocode**
 

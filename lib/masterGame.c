@@ -36,6 +36,7 @@ static const int GameSummaryLineLength = 29;
 typedef struct setUpdater {
   set_t * updatedSet;
   participant_t * partToBeRemoved;
+  map_t * map;
 } setUpdater_t;
 
 typedef struct partAndIdHolder {
@@ -52,11 +53,6 @@ typedef struct summer {
   int sum;
 } summer_t;
 
-typedef struct idHolder {
-  int index;
-  char id;
-} idHolder_t;
-
 typedef struct stringsHolder {
   char * idx;
   char * gameSummary;
@@ -67,7 +63,6 @@ typedef struct masterGame {
   map_t * map;
   set_t * participants;
   set_t * removedPlayers;
-  //set_t * playerIds;
   bool containsSpectator; 
   int playerCount;
 } masterGame_t;
@@ -77,7 +72,7 @@ typedef struct masterGame {
 /* see masterGame.h for comments about exported functions */
 
 /**************** local functions ****************/
-setUpdater_t * setUpdater_new(participant_t * partToBeRemoved);
+setUpdater_t * setUpdater_new(participant_t * partToBeRemoved, masterGame_t * mg);
 void setUpdater_delete(setUpdater_t * updatedSet, void (*itemdelete)(void *item));
 
 partAndIdHolder_t * partAndIdHolder_new(char id);
@@ -90,28 +85,20 @@ summer_t * summer_new(void);
 void summer_increment(summer_t * summer);
 void summer_delete(summer_t * summer);
 
-idHolder_t * idHolder_new(void);
-void idHolder_assignId(idHolder_t * iH, char id);
-void idHolder_incrementIndex(idHolder_t * iH);
-void idHolder_delete(idHolder_t * iH);
-
 stringsHolder_t * stringsHolder_new(char * idx, char * gameSummary);
 void stringsHolder_delete(stringsHolder_t * sH);
 
 static point_t * validPoint(masterGame_t * mg);
-static void intializeParticipantHelper(void *arg, const char *key, void *item);
 static participant_t * intializeParticipant(masterGame_t * mg, char * playerRealName);
 static void removePartHelper(void *arg, const char *key, void *item);
+static void pointSetCopier(void *arg, const char * key, void * item);
 static set_t * mergeSets(set_t * setA, set_t * setB);
 static void mergeSetsHelper(void *arg, const char * key, void * item);
 static set_t * createPlayerPointsSet(set_t * participants);
 static void createPlayerPointsSetHelper(void *arg, const char * key, void * item);
-static int getMapIndex(int x, int y, int ncols, int nrows);
 static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint);
 static void getParticipantIdAtPointHelper(void *arg, const char * key, void * item);
 static void endGameHelper(void *arg, const char * key, void * item);
-static int setSizeCounter(set_t * set);
-static void setSizeCounterHelper(void *arg, const char * key, void * item);
 static void participantsSetDeleteHelper(void * item);
 static void getPartHelper(void *arg, const char *key, void *item);
 static void pointDeleteHelper(void *item);
@@ -125,7 +112,7 @@ static void pointDeleteHelper(void *item);
  * returns NULL if error in allocating memory for struct
  * otherwise returns intialized setUpdater sturct
  */
-setUpdater_t * setUpdater_new(participant_t * partToBeRemoved)
+setUpdater_t * setUpdater_new(participant_t * partToBeRemoved, masterGame_t * mg)
 {
   setUpdater_t * setUpdater = malloc(sizeof(setUpdater_t));
 
@@ -135,6 +122,7 @@ setUpdater_t * setUpdater_new(participant_t * partToBeRemoved)
   else{
     setUpdater->updatedSet = set_new();
     setUpdater->partToBeRemoved = partToBeRemoved;
+    setUpdater->map = mg->map;
     return setUpdater;
   }
 }
@@ -151,8 +139,6 @@ setUpdater_t * setUpdater_new(participant_t * partToBeRemoved)
 void setUpdater_delete(setUpdater_t * setUpdater, void (*itemdelete)(void *item))
 {
   if(setUpdater != NULL){
-    (*itemdelete)(setUpdater->partToBeRemoved);
-    set_delete(setUpdater->updatedSet, participantsSetDeleteHelper);
     free(setUpdater);
   }
 }
@@ -189,7 +175,6 @@ partAndIdHolder_t * partAndIdHolder_new(char id)
 void partAndIdHolder_delete(partAndIdHolder_t * partAndIdHolder, void (*itemdelete)(void *item))
 {
   if(partAndIdHolder != NULL){
-    (*itemdelete)(partAndIdHolder->part);
     free(partAndIdHolder);
   }
 }
@@ -227,7 +212,6 @@ partAndPointHolder_t * partAndPointHolder_new(point_t * point)
 void partAndPointHolder_delete(partAndPointHolder_t * partAndPointHolder, void (*itemdelete)(void *item))
 {
   if(partAndPointHolder != NULL){
-    (*itemdelete)(partAndPointHolder->part);
     free(partAndPointHolder);
   }
 }
@@ -281,71 +265,6 @@ void summer_delete(summer_t * summer)
   }
 }
 
-/**************** idHolder_new ****************/
-/*
- * function to intializes idHolder struct
- * allocates memory for struct
- * intializes char in instance variable at value of '\0'
- * intialized int held in instance variable at value of 0
- * returns NULL if error in allocating memory for struct
- * otherwise returns intialized idHolder sturct
- */
-idHolder_t * idHolder_new(void)
-{
-  idHolder_t * iH = malloc(sizeof(idHolder_t));
-
-  if(iH == NULL){
-    return NULL;
-  }
-  else{
-    iH->index = 0;
-    iH->id = '\0';
-    return iH;
-  }
-}
-
-/**************** idHolder_assignId ****************/
-/*
- * function to set id held idHolder struct
- * takes in idHolder and char
- * checks idHolder isn't null
- * sets instance variable id held in idHolder to given char
- */
-void idHolder_assignId(idHolder_t * iH, char id)
-{
-  if(iH != NULL){
-    iH->id = id;
-  }
-}
-
-/**************** idHolder_incrementIndex ****************/
-/*
- * function to increment int held idHolder struct
- * takes in idHolder and char
- * checks idHolder isn't null
- * increments int held in index variable by 1
- */
-void idHolder_incrementIndex(idHolder_t * iH)
-{
-  if(iH != NULL){
-    iH->index = iH->index + 1;
-  }
-}
-
-/**************** idHolder_delete ****************/
-/*
- * function to delete idHolder struct
- * takes in idHolder 
- * checks summer isn't null
- * frees allocated memory
- */
-void idHolder_delete(idHolder_t * iH)
-{
-  if(iH != NULL){
-    free(iH);
-  }
-}
-
 stringsHolder_t * stringsHolder_new(char * idx, char * gameSummary)
 {
   stringsHolder_t * sH = malloc(sizeof(stringsHolder_t));
@@ -367,10 +286,8 @@ void stringsHolder_delete(stringsHolder_t * sH)
   }
 }
 
-
-
 /**************** masterGame_new() ****************/
-/* see masterGame.h for description */
+/* see masterame.h for description */
 masterGame_t * masterGame_new(char * pathname, int seed)
 {
   masterGame_t * masterGame = malloc(sizeof(masterGame_t));
@@ -383,10 +300,6 @@ masterGame_t * masterGame_new(char * pathname, int seed)
     masterGame->map = map_new(pathname, MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
     masterGame->participants = set_new();
     masterGame->removedPlayers = set_new();
-    /*masterGame->playerIds = set_new();
-    for(int i = 0; i < 26; i++){
-      set_insert(masterGame->playerIds, &PlayerSymbolSet[i], NULL);
-    }*/
     masterGame->containsSpectator = false;
     masterGame->playerCount = 0;
     return masterGame;
@@ -409,11 +322,9 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
       partAndIdHolder_t * ph = partAndIdHolder_new('$');
       set_iterate(mg->participants, ph, getPartHelper);
       masterGame_removePart(mg, ph->part);
-      //partAndIdHolder_delete(ph, participantsSetDeleteHelper);
+      partAndIdHolder_delete(ph, participantsSetDeleteHelper);
     }
-    else{
-      mg->containsSpectator = true;
-    }
+    mg->containsSpectator = true;
   }
   char partId = participant_getId(part);
   set_insert(mg->participants, &partId, part);
@@ -439,8 +350,8 @@ static point_t * validPoint(masterGame_t * mg)
     point_setX(currPoint, x);
     point_setY(currPoint, y); 
   }
-  set_delete(playerPoints, pointDeleteHelper);
   set_delete(nuggets, pointDeleteHelper);
+  set_delete(playerPoints, pointDeleteHelper);
   return currPoint;
 }
 
@@ -461,22 +372,11 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
   char participantSymbol = '\0';
   if(playerRealName != NULL){
     if(mg->playerCount > 25){
+      point_delete(startLocation);
       return NULL;
     }
     else{
       participantSymbol = PlayerSymbolSet[mg->playerCount];
-     /* idHolder_t * iH = idHolder_new();
-      int beforeValue;
-      int afterValue;
-      for(int i = 0; i < 26 && participantSymbol == '\0'; i++){
-        idHolder_assignId(iH, PlayerSymbolSet[i]);
-        beforeValue = iH->index;
-        set_iterate(mg->participants, iH, intializeParticipantHelper);
-        afterValue = iH->index;
-        if(beforeValue == afterValue){
-          participantSymbol = iH->id;
-        }
-      }*/
       mg->playerCount = mg->playerCount + 1;
     }
   }
@@ -486,21 +386,6 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
   }
   participant_t * part = participant_new(startLocation, mg->map, participantSymbol, isPlayer, playerRealName);
   return part;
-}
-
-/**************** intializeParticipantHelper ****************/
-/*
- * helper function for set iterate used in `intializeParticipant` function
- * this function declares the argument passed to be of type idHolder
- * takes every key in the set its iterating over 
- * and if it is equal to the char held in idHolder increments the int held in idHolder
- */
-static void intializeParticipantHelper(void *arg, const char *key, void *item)
-{
-  idHolder_t * iH = arg; 
-  if(*key == iH->id){
-    idHolder_incrementIndex(iH);
-  }
 }
 
 /**************** masterGame_removePart ****************/
@@ -513,16 +398,27 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
   else{
     char removedPlayerId = participant_getId(part);
     if (removedPlayerId != '$') {
+      participant_t * partCopy;
+      point_t * partLoc = point_new(point_getX(participant_getLoc(part)), point_getY(participant_getLoc(part)));
+      char id = participant_getId(part);
+      char * realName = participant_getRealName(part);
+      char * realNameCopy = malloc(strlen(realName)+1);
+      strcpy(realNameCopy, realName);
+      partCopy = participant_new(partLoc, mg->map, id, true, realNameCopy);
+      participant_setPurse(partCopy, participant_getPurse(part));
+      free(realNameCopy);
+      
       set_t* removedPlayers = mg->removedPlayers;
-      set_insert(removedPlayers, &removedPlayerId, part);
+      set_insert(removedPlayers, &removedPlayerId, partCopy);
     }
     else{
       mg->containsSpectator = false;
     }
-    setUpdater_t * setUpdater = setUpdater_new(part);
+    setUpdater_t * setUpdater = setUpdater_new(part, mg);
     set_iterate(mg->participants, setUpdater, removePartHelper);
+    set_delete(mg->participants, participantsSetDeleteHelper);
     mg->participants = setUpdater->updatedSet;
-    //setUpdater_delete(setUpdater, participantsSetDeleteHelper);
+    setUpdater_delete(setUpdater, participantsSetDeleteHelper);
     return true;
   }
 }
@@ -534,13 +430,57 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
  * takes every item in the set its iterating over and if it is not equal to the item to be removed (held in setUpdater)
  * then it adds item to the set held in setUpdated
  */
-static void removePartHelper(void *arg, const char *key, void *item)
+static void removePartHelper(void *arg, const char *key, void * item)
 {
   setUpdater_t * setUpdater = arg;
   if(item != setUpdater->partToBeRemoved){
+    participant_t * partCopy;
+    point_t * partLoc = point_new(point_getX(participant_getLoc(item)), point_getY(participant_getLoc(item)));
     char id = *key;
-    set_insert(setUpdater->updatedSet, &id, item);
+    bool isPlayer;
+    char * realName = participant_getRealName(item);
+    if(realName == NULL){
+      isPlayer = false;
+      partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, NULL);
+    }
+    else{
+      isPlayer = true;
+      char * realNameCopy = malloc((strlen(realName)+1)*sizeof(char));
+      strcpy(realNameCopy, realName);
+      
+      partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, realNameCopy);
+      participant_setPurse(partCopy, participant_getPurse(item));
+      
+      set_t * visiblePoints = set_new();
+      set_iterate(participant_getVisiblePoints(item), visiblePoints, pointSetCopier);
+      participant_setVisibility(partCopy, visiblePoints);
+      
+      free(realNameCopy);
+    }
+    if(!set_insert(setUpdater->updatedSet, &id, partCopy)){
+      participant_delete(partCopy);
+    }
   }
+}
+
+/**************** pointSetCopier ****************/
+/*
+ * helper function for set iterate used in `removePartHelper` function
+ * this function creates a new point from the point stored in item
+ * creates a string representation from the new point
+ * inserts this into the set passed as an argument
+ * frees the string representation after insert
+ * this creates an identical copy of the point set being iterated over
+ */
+static void pointSetCopier(void *arg, const char * key, void * item)
+{
+  set_t * visiblePoints = arg;
+  point_t * point = point_new(point_getX(item), point_getY(item));
+  char * pointString = point_toString(point);
+  if(!set_insert(visiblePoints, pointString, point)){
+    point_delete(point);
+  }
+  free(pointString);
 }
 
 /**************** masterGame_movePartLoc() ****************/
@@ -554,7 +494,7 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
     partAndIdHolder_t * ph = partAndIdHolder_new(id);
     set_iterate(mg->participants, ph, getPartHelper);
     participant_t * part = ph->part;
-    //partAndIdHolder_delete(ph, participantsSetDeleteHelper);
+    partAndIdHolder_delete(ph, participantsSetDeleteHelper);
     if(part == NULL){
       return false;
     }
@@ -572,6 +512,7 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
       set_t * prevVisiblePoints = participant_getVisiblePoints(part);
       set_t * visiblePoints = mergeSets(newlyVisiblePoints, prevVisiblePoints);
       participant_setVisibility(part, visiblePoints);
+      set_delete(newlyVisiblePoints, pointDeleteHelper);
 
       if(point_setHasPoint(newLoc, playerPoints)){
         char partIdAtCurrLocation = getParticipantIdAtPoint(mg, newLoc);
@@ -580,17 +521,23 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
           participant_setLoc(conflictingPart, tempPoint);       
         }
       }
+      else{
+        point_delete(tempPoint);
+      }
       if(participant_setLoc(part, newLoc)){
         int nugIncrement = map_consumeNug(mg->map, newX, newY);
         participant_incrementPurse(part, nugIncrement);
-        free(ph);
+        set_delete(playerPoints, pointDeleteHelper);
         return true;
       }
       else{
+        set_delete(playerPoints, pointDeleteHelper);
         return false;
       }
     }
     else{
+      point_delete(newLoc);
+      point_delete(tempPoint);
       return false;
     }
   }
@@ -607,7 +554,7 @@ bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y)
     partAndIdHolder_t * ph = partAndIdHolder_new(id);
     set_iterate(mg->participants, ph, getPartHelper);
     participant_t * part = ph->part;
-    //partAndIdHolder_delete(ph, participantsSetDeleteHelper);
+    partAndIdHolder_delete(ph, participantsSetDeleteHelper);
     point_t * newLoc = point_new(x, y);
     if(map_getChar(mg->map, x, y) == '.' ||  map_getChar(mg->map, x, y) == '#'){
 
@@ -615,6 +562,7 @@ bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y)
       set_t * prevVisiblePoints = participant_getVisiblePoints(part);
       set_t * visiblePoints = mergeSets(newlyVisiblePoints, prevVisiblePoints);
       participant_setVisibility(part, visiblePoints);
+      set_delete(newlyVisiblePoints, pointDeleteHelper);
 
       if(participant_setLoc(part, newLoc)){
         int nugIncrement = map_consumeNug(mg->map, x, y);
@@ -710,9 +658,9 @@ char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
   }
   playerMap[idx] = '\0';
   set_delete(currVisiblePoints, pointDeleteHelper);
-  // set_delete(playerPoints, pointDeleteHelper);
+  set_delete(playerPoints, pointDeleteHelper);
   set_delete(nuggets, pointDeleteHelper);
-  // set_delete(visiblePoints, pointDeleteHelper);
+  set_delete(visiblePoints, pointDeleteHelper);
   return playerMap;
 }
 
@@ -745,9 +693,10 @@ static set_t * mergeSets(set_t * setA, set_t * setB)
 static void mergeSetsHelper(void *arg, const char * key, void * item)
 {
   set_t * mergedSet = arg;
-  point_t* p = item;
-  point_t* pAdd = point_new(point_getX(p), point_getY(p));
-  set_insert(mergedSet, key, pAdd);
+  point_t* pAdd = point_new(point_getX(item), point_getY(item));
+  if (set_insert(mergedSet, key, pAdd) == false) {
+    point_delete(pAdd);
+  }
 }
 
 /**************** createPlayerPointsSet ****************/
@@ -779,24 +728,12 @@ static void createPlayerPointsSetHelper(void *arg, const char * key, void * item
 {
   set_t * participantPoints = arg;
   if(*key != '$'){
-    point_t * participantLoc = participant_getLoc(item);
+    point_t* participantLoc = point_new(point_getX(participant_getLoc(item)), point_getY(participant_getLoc(item)));
     char * pointAsString = point_toString(participantLoc);
     set_insert(participantPoints, pointAsString, participantLoc);
+    free(pointAsString);
   }
 }
-
-/**************** getMapIndex() ****************/
-/*
- * takes two integers representing an x and y coordinate in 2D map
- * converts them into single int 
- * this single int represents the equivanlent index of the (x,y) coordinates for a 1D string representation of the map
- * returns said single int
- */
-static int getMapIndex(int x, int y, int ncols, int nrows)
-{
-  return (x+y) + (y * ncols);
-}
-
 
 /**************** getParticipantIdAtPoint() ****************/
 /*
@@ -810,7 +747,7 @@ static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint)
   partAndPointHolder_t * pAPH = partAndPointHolder_new(currPoint);
   set_iterate(mg->participants, pAPH, getParticipantIdAtPointHelper);
   participant_t * part = pAPH->part;
-  //partAndPointHolder_delete(pAPH, participantsSetDeleteHelper);
+  partAndPointHolder_delete(pAPH, NULL);
   return participant_getId(part);
 }
 
@@ -865,9 +802,9 @@ char * masterGame_endGame(masterGame_t * mg) {
   set_iterate(mg->removedPlayers, sH, endGameHelper);
 
   *(sH->idx) = '\0';
+  free(sH);
   return gameSummary;
 }
-
 /**************** endGameHelper() ****************/
 /*
  * helper function for set iterate used in `masterGame_endGame` function
@@ -890,34 +827,8 @@ static void endGameHelper(void * arg, const char * key, void * item)
       *(sH->idx) = line[i];
       (sH->idx)++;
     }
+    free(line);
   }
-}
-
-/**************** setSizeCounter ****************/
-/*
- * helper function for counting the size of a set
- * takes in a set struct
- * returns number of nodes in set
- */
-static int setSizeCounter(set_t * set)
-{
-  summer_t * summer = summer_new();
-  set_iterate(set, summer, setSizeCounterHelper);
-  int sum = summer->sum;
-  summer_delete(summer);
-  return sum;
-}
-
-/**************** setSizeCounterHelper ****************/
-/*
- * helper function for set iterate used in `setSizeCounter` function
- * this function declares the argument passed te be of type summer
- * increments summer for each item in set
- */
-static void setSizeCounterHelper(void *arg, const char * key, void * item)
-{
-  summer_t * summer = arg;
-  summer_increment(summer);
 }
 
 /**************** masterGame_delete ****************/
@@ -928,9 +839,6 @@ void masterGame_delete(masterGame_t * mg)
     map_delete(mg->map);
     set_delete(mg->participants, participantsSetDeleteHelper);
     set_delete(mg->removedPlayers, participantsSetDeleteHelper);
-    set_delete(mg->participants, participantsSetDeleteHelper);
-    set_delete(mg->participants, participantsSetDeleteHelper);
-    set_delete(mg->participants, participantsSetDeleteHelper);
     free(mg);
   }
 }
@@ -968,7 +876,7 @@ participant_t * masterGame_getPart(masterGame_t * mg, char id)
   partAndIdHolder_t * ph = partAndIdHolder_new(id);
   set_iterate(mg->participants, ph, getPartHelper);
   participant_t * part = ph->part;
-  //partAndIdHolder_delete(ph, participantsSetDeleteHelper);
+  partAndIdHolder_delete(ph, participantsSetDeleteHelper);
   return part;
 }
 

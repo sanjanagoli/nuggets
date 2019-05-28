@@ -53,7 +53,7 @@ Display map for spectator:
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-핈f￢
+
 
 Move participant with id 'b' so that it picks up a nugget: 24
 
@@ -79,7 +79,7 @@ Display map for spectator after moving 'b':
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-뛣￢
+
 
 Remove participant currently with id 'b' from game: 24
 Removed 'b'.
@@ -133,7 +133,7 @@ Display map after adding in new 'y':
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-핈f￢
+
 
 Add new participant to game with real name that is same as other real name in use ('apple')
 The new entrant's ID is (should be 'z'): z
@@ -160,7 +160,7 @@ Display map after adding in new 'z':
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-핈f￢
+
 
 Current player count: 26
 
@@ -188,7 +188,7 @@ Display map after attempting to add in new participant. (No participant should h
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-핈f￢
+
 
 Add spectator to replace current spectator
 
@@ -214,7 +214,7 @@ Display map from new spectator's viewpoint:
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
- 뛣￢
+
 
 Move player 'c' to space occupied by player 'd':
 
@@ -240,7 +240,7 @@ Display map for spectator after 'c' and 'd' switch places:
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-뛣￢
+
 
 Move player 'c' to top corner room:
 
@@ -266,7 +266,7 @@ Display map for player 'c':
                                                                                
                                                                                
                                                                                
-핈f￢
+
 
 Move player 'c' to middle room:
 
@@ -292,7 +292,7 @@ Display map for player 'c':
                                                                                
                                                                                
                                                                                
-핈f￢
+
 
 Attempt to move player 'c' to invalid space:
 
@@ -318,7 +318,7 @@ Display map for player 'c':
                                                                                
                                                                                
                                                                                
-핈f￢
+
 
 Display map for spectator after all moves:
   +----------+                                                                 
@@ -342,7 +342,7 @@ Display map for spectator after all moves:
      |......+---------------+......*...|                                       
      |........*...*.....*.g.*....*.....|                                       
      +---------------------------------+                                       
-핈f￢
+
 
 Display endgame summary:
 
@@ -368,11 +368,11 @@ Display endgame summary:
  f     0                fish
  e     0            elephant
  d     0                 dog
- c    88                 cat
+ c    22                 cat
  a     0               apple
  y     0               young
  z     0               apple
 
 ----Removed Participants----
- b    64                 bat
+ b     9                 bat
 
