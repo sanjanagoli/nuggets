@@ -517,7 +517,7 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
 
       if(point_setHasPoint(newLoc, playerPoints)){
         char partIdAtCurrLocation = getParticipantIdAtPoint(mg, newLoc);
-        if(partIdAtCurrLocation != '\0'){
+        if(partIdAtCurrLocation != '\0' && partIdAtCurrLocation != '$'){
           participant_t * conflictingPart = masterGame_getPart(mg, partIdAtCurrLocation); 
           participant_setLoc(conflictingPart, tempPoint);       
         }
