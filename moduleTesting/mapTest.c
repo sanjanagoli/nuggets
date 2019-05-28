@@ -218,6 +218,28 @@ int main() {
     }
     set_delete(visibleSet, pointDeleteHelper);
     
+    printf("\nVisibility Function (5: through a tunnel into interior hole):\n");
+    xLoc = 43;
+    yLoc = 16;
+    visibleSet = map_getVisibility(map, xLoc, yLoc);
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        point_t* p = point_new(x,y);
+        if (x == xLoc && y == yLoc) {
+          printf("X");
+        } 
+        else if (point_setHasPoint(p, visibleSet)) {
+          char c = map_getChar(map, x, y);
+          printf("%c", c);
+        } else {
+          printf(" ");
+        }
+        point_delete(p);
+      }
+      printf("\n");
+    }
+    set_delete(visibleSet, pointDeleteHelper);
+    
     printf("\nConsume each pile:\n");
     printf("\tNuggets remaining: %i\n", map_nugsRemaining(map));
     printf("\tPiles remaining: %i\n", map_pilesRemaining(map));
