@@ -48,7 +48,8 @@ typedef struct partBool {
 typedef struct setMg {
     masterGame_t *mg;
     int index;
-    addrId_t* addrIds[26];
+    int spectatorIndex;
+    addrId_t* addrIds[27];
 } setMg_t;
 
 /************* functions ************/
@@ -184,8 +185,19 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
         if (id != '\0') {
             addrId_t* addrId = addrId_new(id, from);
-            setMg->addrIds[setMg->index] = addrId;
-            setMg->index = setMg->index+1;
+            if (setMg->spectatorIndex > -1) {
+                addrId_t* addressId = setMg->addrIds[setMg->spectatorIndex];
+                if (addressId != NULL) {
+                    free(addressId);
+                    setMg->addrIds[setMg->spectatorIndex] = addrId;
+                }
+                printf("spectator not for the first time\n");
+            } else {
+                printf("spectator for first time\n");
+                setMg->addrIds[setMg->index] = addrId;
+                setMg->spectatorIndex = setMg->index;
+                setMg->index = setMg->index+1;
+            }
             printf("inserted port: %d\n", ntohs(from.sin_port));
 
             //server responds to spectator with grid message
@@ -331,7 +343,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
         }
 
         //if there are no more nuggets remaining in the game, quit out
-        if (map_nugsRemaining(map) == 0) {
+        if (map_nugsRemaining(map) <= 240) {
             //send all the participants that are currently in the game the gameover message
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
             displayGameOver(activeParticipants, setMg);
@@ -349,7 +361,7 @@ handleMessage(void * arg, const addr_t from, const char * message)
         //if there are no more nuggets remaining in the game, quit out
         message_send(from, "NO...not a valid message from client");
         //still check if the game is over as determined by the number of nuggets
-        if (map_nugsRemaining(map) == 0) {
+        if (map_nugsRemaining(map) <= 240) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
 
             displayGameOver(activeParticipants, setMg);
@@ -456,7 +468,7 @@ setMg_new(masterGame_t* mg, int index)
     if (setMg != NULL && mg != NULL) {
         setMg->mg = mg;
         setMg->index = 0;
-
+        setMg->spectatorIndex = -1;
         for (int i = 0; i < 26; i++) {
             setMg->addrIds[i] = NULL;
         }
