@@ -216,6 +216,32 @@ Display map from new spectator's viewpoint:
      +---------------------------------+                                       
 
 
+Add another spectator to replace current spectator again
+
+Display map from new spectator's viewpoint:
+  +----------+                                                                 
+  |.*.*......|                 +---------+                                     
+  |*......n..####              |...tv*.e.|                +-------+            
+  |.**..*...h|                 +-----#---+                |.......|            
+  +---------#+                       #              #######....*.y|            
+            #                        #              #     +---#---+            
+            #  +-----------+         #     +--------#+        #                
+            ####..f.......w##############  |*...*....|        #                
+               |...........|            #  |d........|        #                
+               +-----------+            ####c........|        #                
+                                           +----#----+        #                
+                                                #    +--------#--+             
+     +---------------------------------+        #    |...........|             
+     |r..*...x..z...p...*...........*..|        ######..*........|             
+     |......*u..*....................*.|        #    |..k**......|             
+     |....*.+---------------+.......q..|        #    |.....s*...j|             
+     |.m...i|               |..........##########    +-----------+             
+     |..al..|               |....*....o|                                       
+     |......+---------------+......*...|                                       
+     |........*...*.....*.g.*....*.....|                                       
+     +---------------------------------+                                       
+
+
 Move player 'c' to space occupied by player 'd':
 
 Display map for spectator after 'c' and 'd' switch places:
@@ -347,31 +373,31 @@ Display map for spectator after all moves:
 Display endgame summary:
 
 ----Active Participants-----
- x     0           xylophone
- w     0               water
- v     0                vent
- u     0               under
- t     0                  tv
- s     0               sound
- r     0                 rat
- q     0               quiet
- p     0               phone
- o     0              office
- n     0                 nap
- m     0               money
- l     0                lima
- k     0                kale
- j     0                john
- i     0              indian
- h     0                 hat
- g     0                gnat
- f     0                fish
- e     0            elephant
- d     0                 dog
- c    22                 cat
- a     0               apple
- y     0               young
  z     0               apple
+ y     0               young
+ a     0               apple
+ c    18                 cat
+ d     0                 dog
+ e     0            elephant
+ f     0                fish
+ g     0                gnat
+ h     0                 hat
+ i     0              indian
+ j     0                john
+ k     0                kale
+ l     0                lima
+ m     0               money
+ n     0                 nap
+ o     0              office
+ p     0               phone
+ q     0               quiet
+ r     0                 rat
+ s     0               sound
+ t     0                  tv
+ u     0               under
+ v     0                vent
+ w     0               water
+ x     0           xylophone
 
 ----Removed Participants----
  b     9                 bat

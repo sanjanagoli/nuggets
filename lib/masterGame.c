@@ -655,7 +655,9 @@ char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
                 playerMap[idx] = '@';
               }
               else{
-                playerMap[idx] = partIdAtCurrLocation; 
+                if(partIdAtCurrLocation != '$'){
+                  playerMap[idx] = partIdAtCurrLocation;
+                } 
               }  
             } else {
               playerMap[idx] = map_getChar(masterGame_getMap(mg), x, y);  
