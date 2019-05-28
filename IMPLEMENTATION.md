@@ -5,11 +5,44 @@
 Nuggets is a game where players can connect to a remote server and attempt to find piles of gold in a maze. Their visibility is limited by their current and previous locations; the game proceeds until all gold in the maze has been collected. Up to one spectator can join each game and watch the entire map, unhindered by visibility.
 
 ### **Data Structures**
-* *struct point*
-* *struct map*
-* *struct participant*
-* *struct masterGame*
-* *struct set*
+* *struct point*  
+Internal Definitions:
+    ```c
+    int x; -> x coordinate of the point
+    int y; -> y coordinate of the point
+    ```
+* *struct map*  
+Internal Definitions:
+   ```c
+    char* mapData; -> strong containing base map data
+    int nrows; -> numbers of rows in map
+    int ncols; -> number of columns in map
+    set_t* nuggetLocs; -> set containing points indicating location of nugget piles in map
+    set_t* consumedNugs; -> set containing points indicating location of consumed nugget piles map
+    int nugsRemaining; -> number of nuggest remaining
+    int pilesRemaining; -> number of nugget piles remaining
+    int avgValue; -> average value of each nugget pile
+    ```
+* *struct participant*  
+Internal Definitions:
+    ```c
+    point_t *location; -> current location of participant
+    map_t *map; -> base map
+    char id; -> game id of player (what they look like on map to other participants)
+    bool player; -> whether or not the participant is a player (as opposed to a spectator)
+    set_t *visiblePoints; -> the points that are visible to the participant on the map
+    int purse; -> the gold amount held by the participant
+    char * playerRealName; -> the participant's real name
+    ```
+* *struct masterGame*  
+Internal Definitions:
+    ```c
+    map_t * map; -> strong containing base map data
+    set_t * participants; -> set of participants currently active in the game
+    set_t * removedPlayers; -> set of players that were in game and then were removed
+    bool containsSpectator; -> boolean value indicating if the game has spectator currently active
+    int playerCount; -> number of active players in the game
+    ```
 
 ### **Function Prototypes**
 #### **point**  
