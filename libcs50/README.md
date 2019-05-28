@@ -7,8 +7,8 @@ To build libcs50.a, run `make`.
 
 To bring  data-structure implementation, modify the Makefile to replace the rule for `$(LIB)`:
 ```c
-$(LIB): libcs50-given.a
-	cp libcs50-given.a $(LIB)
+$(LIB): libcs50.a
+	cp libcs50.a $(LIB)
 ```
 Notice that command just copies the relevant pre-compiled library to libcs50.a.
 
