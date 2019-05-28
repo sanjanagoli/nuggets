@@ -28,4 +28,15 @@ The testing module includes moving players around the map, adding & removing par
 
 ## Integration Testing
 
-# 
+`gameComm` primarily uses `handle_loop`, `handle_message`, `message_send`, and a host of functions from `mastergame`. handleMessage is a helper method for message_loop -- handles different commands passed from client, including SPECTATE, PLAY, and KEY. handleMessage uses an array of structs to store ids to addr, such that when one of the players sends a command, the server knows what user to send information back to specifically. Every time a player makes a move, each user is sent an updated map and updated gold message. Once all the gold nuggets have been collected, a GAMEOVER message will be printed on the server console as well as the remaining client consoles. Rigorously run through the following test cases:
+
+* running into walls/non-passable areas
+* several spectators joining (and appropriately sending quit message)
+* several players and spectators joining and quitting
+* collecting all nuggets and sending gameover message
+* switching player positions (while adjacent)
+* trying to add more than *MaxPlayers*
+* walking through tunnels
+
+
+
