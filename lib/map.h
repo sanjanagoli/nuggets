@@ -31,6 +31,8 @@ typedef struct map map_t;  // opaque to users of the module
  *   that allow for each pile to have 
  * We return:
  *   A pointer to new map, which will have nuggets initialized via map_genNugs.
+ *   If the number of maximum piles specified exceeds the number of empty spaces
+ *   minus 26 on the map, the map will not be made.
  * Caller is responsible for:
  *   Freeing the map when they are done.
  */
