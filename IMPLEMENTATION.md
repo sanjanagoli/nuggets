@@ -384,7 +384,7 @@ Program does not create any lasting files -- will produce log of player movement
 
 ### **Security and Privacy Properties**
 
-Once `gameCom` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must give a unique identifier (player's "real name") in order to clarify who is performing which action. 
+Once `gameComm` is executed, the program notifies caller of port number that clients must use to access the game. Additionally, when a player connects, he/she must give a unique identifier (player's "real name") in order to clarify who is performing which action. 
 
 ### **Pseudocode**
 
