@@ -88,10 +88,9 @@ int main(const int argc, char * argv[])
         //masterGame contains functionality for all game methods
         masterGame_t* mastergame = masterGame_new(argv[1], seed); 
         if (mastergame == NULL || masterGame_getMap(mastergame) == NULL) {
-            fprintf(stderr, "Modules were not correctly initialized...\n");
-            if (masterGame != NULL) {
-                masterGame_delete(masterGame);
-            }
+            fprintf(stderr, "\nModules were not correctly initialized...\n");
+            masterGame_delete(mastergame);
+        
             return 1;
         } else {
             //uses/passes set mastergame structure so that message_loop has access to them
