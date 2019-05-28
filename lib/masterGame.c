@@ -922,3 +922,4 @@ static void pointDeleteHelper(void *item) {
     point_delete(item);
   }
 }
+
