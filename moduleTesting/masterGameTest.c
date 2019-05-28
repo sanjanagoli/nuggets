@@ -119,6 +119,13 @@ int main() {
     char * map7 = masterGame_displayMap(mg, masterGame_getPart(mg, '$'));
     printf("%s\n", map7);
     free(map7);
+
+    printf("\nAdd another spectator to replace current spectator again\n");
+    masterGame_addPart(mg, NULL);
+    printf("\nDisplay map from new spectator's viewpoint:\n");
+    char * map72 = masterGame_displayMap(mg, masterGame_getPart(mg, '$'));
+    printf("%s\n", map72);
+    free(map72);
     
     printf("\nMove player 'c' to space occupied by player 'd':\n");
     masterGame_movePartLoc(mg, 'c', 0, -1);
