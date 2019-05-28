@@ -347,41 +347,44 @@ void map_genNugs(map_t* map, int minPiles, int maxPiles) {
 /**************** map_getVisibility ****************/
 /* see map.h for description */
 set_t* map_getVisibility(map_t* map, int x, int y) {
-  set_t* visiblePoints = set_new();
-  point_t* startPoint = point_new(x, y);
-  char* startPointP = point_toString(startPoint);
-  set_insert(visiblePoints, startPointP, startPoint);
-  free(startPointP);
-
-  // There are only 4 diagonal rays at a given time
-  struct ray* rayArray[4];
-  
-  // Make each of the starting diagonal rays
-  struct ray ray1 = {x, y, 1, 1, INT_MAX, INT_MAX, false};
-  struct ray* ray1P = &ray1;
-  rayArray[0] = ray1P;
-  struct ray ray2 = {x, y, 1, -1, INT_MAX, INT_MAX, false};
-  struct ray* ray2P = &ray2;
-  rayArray[1] = ray2P;
-  struct ray ray3 = {x, y, -1, -1, INT_MAX, INT_MAX, false};
-  struct ray* ray3P = &ray3;
-  rayArray[2] = ray3P;
-  struct ray ray4 = {x, y, -1, 1, INT_MAX, INT_MAX, false};
-  struct ray* ray4P = &ray4;
-  rayArray[3] = ray4P;
-
-  int raysDone = 0;
-  while (raysDone != 4) {
-    raysDone = 0;
-    for (int i = 0; i < 4; i++) {
-      if (rayArray[i]->done == false) {
-        expandRay(map, rayArray[i], visiblePoints);
-      } else {
-        raysDone++;
+  if (map != NULL) {
+    set_t* visiblePoints = set_new();
+    point_t* startPoint = point_new(x, y);
+    char* startPointP = point_toString(startPoint);
+    set_insert(visiblePoints, startPointP, startPoint);
+    free(startPointP);
+    
+    // There are only 4 diagonal rays at a given time
+    struct ray* rayArray[4];
+    
+    // Make each of the starting diagonal rays
+    struct ray ray1 = {x, y, 1, 1, INT_MAX, INT_MAX, false};
+    struct ray* ray1P = &ray1;
+    rayArray[0] = ray1P;
+    struct ray ray2 = {x, y, 1, -1, INT_MAX, INT_MAX, false};
+    struct ray* ray2P = &ray2;
+    rayArray[1] = ray2P;
+    struct ray ray3 = {x, y, -1, -1, INT_MAX, INT_MAX, false};
+    struct ray* ray3P = &ray3;
+    rayArray[2] = ray3P;
+    struct ray ray4 = {x, y, -1, 1, INT_MAX, INT_MAX, false};
+    struct ray* ray4P = &ray4;
+    rayArray[3] = ray4P;
+    
+    int raysDone = 0;
+    while (raysDone != 4) {
+      raysDone = 0;
+      for (int i = 0; i < 4; i++) {
+        if (rayArray[i]->done == false) {
+          expandRay(map, rayArray[i], visiblePoints);
+        } else {
+          raysDone++;
+        }
       }
     }
+    return visiblePoints;
   }
-  return visiblePoints;
+  return NULL;
 }
 
 /**************** map_getEmptySpots ****************/
@@ -428,54 +431,57 @@ void map_delete(map_t* map) {
 // Expands a ray along its x and y components and sets new values for its
 // descendent diagonal ray.
 static void expandRay(map_t* map, struct ray* r, set_t* visPoints) {
-  int xexpand = 0;
-  int yexpand = 0;
-  int xinc = r->xcomp;
-  int yinc = r->ycomp;
-  int xval = r->xloc;
-  int yval = r->yloc;
   
-  // Expand in x-direction
-  while ((map_isEmptySpot(map, xval, yval) || map_getChar(map, xval, yval) == '#')
-          && xexpand < r->xexpand) {
-    if (map_getChar(map, xval, yval) != '#') {
-      addAdjacentWalls(map, visPoints, xval, yval);
+  if (map != NULL && r != NULL && visPoints != NULL) {
+    int xexpand = 0;
+    int yexpand = 0;
+    int xinc = r->xcomp;
+    int yinc = r->ycomp;
+    int xval = r->xloc;
+    int yval = r->yloc;
+    
+    // Expand in x-direction
+    while ((map_isEmptySpot(map, xval, yval) || map_getChar(map, xval, yval) == '#')
+    && xexpand < r->xexpand) {
+      if (map_getChar(map, xval, yval) != '#') {
+        addAdjacentWalls(map, visPoints, xval, yval);
+      }
+      xexpand++;
+      point_t* p1 = point_new(xval, yval);
+      char* p1S = point_toString(p1);
+      if (set_insert(visPoints, p1S, p1) == false) {
+        point_delete(p1);
+      }
+      free(p1S);
+      xval += xinc;
     }
-    xexpand++;
-    point_t* p1 = point_new(xval, yval);
-    char* p1S = point_toString(p1);
-    if (set_insert(visPoints, p1S, p1) == false) {
-      point_delete(p1);
+    
+    // Reset x val and expand in y-direction
+    xval = r->xloc;
+    while ((map_isEmptySpot(map, xval, yval) || map_getChar(map, xval, yval) == '#')
+    && yexpand < r->yexpand) {
+      if (map_getChar(map, xval, yval) != '#') {
+        addAdjacentWalls(map, visPoints, xval, yval);
+      }
+      yexpand++;
+      point_t* p2 = point_new(xval, yval);
+      char* p2S = point_toString(p2);
+      if (set_insert(visPoints, p2S, p2) == false) {
+        point_delete(p2);
+      }
+      free(p2S);
+      yval += yinc;
     }
-    free(p1S);
-    xval += xinc;
-  }
-
-  // Reset x val and expand in y-direction
-  xval = r->xloc;
-  while ((map_isEmptySpot(map, xval, yval) || map_getChar(map, xval, yval) == '#')
-         && yexpand < r->yexpand) {
-    if (map_getChar(map, xval, yval) != '#') {
-      addAdjacentWalls(map, visPoints, xval, yval);
+    yval = r->yloc;
+    
+    r->xloc = xval + xinc;
+    r->yloc = yval + yinc;
+    r->xexpand = xexpand;
+    r->yexpand = yexpand;
+    // If it can no longer expand in either direction, it is done.
+    if (xexpand == 0 && yexpand == 0) {
+      r->done = true;
     }
-    yexpand++;
-    point_t* p2 = point_new(xval, yval);
-    char* p2S = point_toString(p2);
-    if (set_insert(visPoints, p2S, p2) == false) {
-      point_delete(p2);
-    }
-    free(p2S);
-    yval += yinc;
-  }
-  yval = r->yloc;
-  
-  r->xloc = xval + xinc;
-  r->yloc = yval + yinc;
-  r->xexpand = xexpand;
-  r->yexpand = yexpand;
-  // If it can no longer expand in either direction, it is done.
-  if (xexpand == 0 && yexpand == 0) {
-    r->done = true;
   }
 
 }
@@ -483,33 +489,37 @@ static void expandRay(map_t* map, struct ray* r, set_t* visPoints) {
 /**************** setHasPointWrapper ****************/
 // Wrapper for the point_setHasPoint function that takes an x and y
 static bool setHasPointWrapper(set_t* set, int x, int y) {
-  point_t* p = point_new(x, y);
-  bool val = point_setHasPoint(p, set);
-  point_delete(p);
-  return val;
+  if (set != NULL) {    
+    point_t* p = point_new(x, y);
+    bool val = point_setHasPoint(p, set);
+    point_delete(p);
+    return val;
+  }
+  return false;
 }
 
 /**************** addAdjacentWalls ****************/
 // allows us to add walls that are adjacent to rays to visiblePoints
 static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
-  // Characters to add: -+|#
-
-  // Check diagonal corners around the point for '+'
-  for (int xinc = -1; xinc <= 1; xinc+=2) {
-    for (int yinc = -1; yinc <= 1; yinc+=2) {
-      if (map_getChar(map, x+xinc, y+yinc) == '+') {
-        point_t* p = point_new(x+xinc, y+yinc);
-        char* pS = point_toString(p);
-        if (set_insert(visPoints, pS, p) == false) {
-          point_delete(p);
+  if (map != NULL && visPoints != NULL) {
+    // Characters to add: -+|#
+    
+    // Check diagonal corners around the point for '+'
+    for (int xinc = -1; xinc <= 1; xinc+=2) {
+      for (int yinc = -1; yinc <= 1; yinc+=2) {
+        if (map_getChar(map, x+xinc, y+yinc) == '+') {
+          point_t* p = point_new(x+xinc, y+yinc);
+          char* pS = point_toString(p);
+          if (set_insert(visPoints, pS, p) == false) {
+            point_delete(p);
+          }
+          free(pS);
         }
-        free(pS);
       }
     }
-  }
-
-  // Check a "plus" area around the point for -|#
-  for (int xinc = -1; xinc <= 1; xinc++) {
+    
+    // Check a "plus" area around the point for -|#
+    for (int xinc = -1; xinc <= 1; xinc++) {
       if (isWallChar(map_getChar(map, x+xinc, y))){
         point_t* p = point_new(x+xinc, y);
         char* pS = point_toString(p);
@@ -519,14 +529,15 @@ static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
         free(pS);
       }
     }
-  for (int yinc = -1; yinc <= 1; yinc++) {
-    if (isWallChar((map_getChar(map, x, y+yinc)))) {
-      point_t* p = point_new(x, y+yinc);
-      char* pS = point_toString(p);
-      if (set_insert(visPoints, pS, p) == false) {
-        point_delete(p);
+    for (int yinc = -1; yinc <= 1; yinc++) {
+      if (isWallChar((map_getChar(map, x, y+yinc)))) {
+        point_t* p = point_new(x, y+yinc);
+        char* pS = point_toString(p);
+        if (set_insert(visPoints, pS, p) == false) {
+          point_delete(p);
+        }
+        free(pS);
       }
-      free(pS);
     }
   }
 }
@@ -552,11 +563,13 @@ static void pointDeleteHelper(void *item) {
 // If the nugget passed in by set_iterate hasn't been consumed, it's added to
 // the set.
 static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *item) {
-  struct nugLocHelper *nLH = (struct nugLocHelper*)nugLocHelper;
-  if (point_setHasPoint(item, nLH->map->consumedNugs) == false) {
-    point_t* p = point_new(point_getX(item), point_getY(item));
-    if (set_insert(nLH->unconsumedNugs, key, p) == false) {
-      point_delete(p);
+  if (nugLocHelper != NULL && key != NULL && item != NULL) {    
+    struct nugLocHelper *nLH = (struct nugLocHelper*)nugLocHelper;
+    if (point_setHasPoint(item, nLH->map->consumedNugs) == false) {
+      point_t* p = point_new(point_getX(item), point_getY(item));
+      if (set_insert(nLH->unconsumedNugs, key, p) == false) {
+        point_delete(p);
+      }
     }
   }
 }
@@ -564,6 +577,8 @@ static void unconsumedNugLocsHelper(void *nugLocHelper, const char *key, void *i
 /**************** countHelper ****************/
 // Determines the number of items in a set
 static void countHelper(void *arg, const char *key, void *item) {
-  int* count = arg;
-  (*count)++;
+  if (arg != NULL && key != NULL && item != NULL) {    
+    int* count = arg;
+    (*count)++;
+  }
 }
