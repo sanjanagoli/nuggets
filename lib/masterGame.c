@@ -324,9 +324,7 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
       masterGame_removePart(mg, ph->part);
       partAndIdHolder_delete(ph, participantsSetDeleteHelper);
     }
-    else{
-      mg->containsSpectator = true;
-    }
+    mg->containsSpectator = true;
   }
   char partId = participant_getId(part);
   set_insert(mg->participants, &partId, part);
