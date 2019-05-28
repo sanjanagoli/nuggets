@@ -372,7 +372,7 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
   point_t * startLocation = validPoint(mg);
   char participantSymbol = '\0';
   if(playerRealName != NULL){
-    if(mg->playerCount > 25){
+    if(mg->playerCount > MaxPlayers - 1 || strlen(playerRealName) > MaxNameLength){
       point_delete(startLocation);
       return NULL;
     }
