@@ -10,18 +10,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "../libcs50/set.h"
 #include "map.h"
 #include "point.h"
 #include "participant.h"
 
+/* 
+  STYLE: The following prototypes should be marked 'static', if they
+  are meant to be for internal-use only, or should be removed entirely
+  if they are defined in the corresponding header file.
+ */
 void point_checker(void *arg, const char *key, void *item);
 void print_helper(FILE *fp, const char *key, void *item);
 void delete_helper(void *item);
+
 typedef struct pointBool pointBool_t;
 
 /**************** typedef struct participant participant_t ****************/
 /* see participant.h for description */
+/* 
+  STYLE: each member of the struct should have a brief inline comment
+  to describe it.
+ */
 typedef struct participant {
     point_t *location;
     map_t *map;
@@ -43,6 +57,7 @@ typedef struct pointBool {
 /* see participant.h for description */
 participant_t* participant_new(point_t* p, map_t* map, char id, bool player, char * playerRealName)
 {
+	// GRADER: what if malloc fails (returns NULL)?
     participant_t *participant = malloc(sizeof(participant_t));
     if ((p != NULL) && (map != NULL)) {
         participant->location = p;
@@ -82,6 +97,9 @@ set_t* participant_getVisiblePoints(participant_t* part)
     if (part != NULL) {
         return part->visiblePoints;
     } else {
+/* 
+  STYLE: remove debugging code - or use the *log* module to control it.
+ */
         printf("nig");
         return NULL;
     }
@@ -167,6 +185,7 @@ int participant_incrementPurse(participant_t* part, int value)
 /* see participant.h for description */
 bool participant_isVisible(participant_t* part, point_t* p)
 {
+	// GRADER: what if malloc fails (returns NULL)?
     pointBool_t* pointBool = malloc(sizeof(pointBool_t));
     pointBool->p = p;
     pointBool->exists = false; 
@@ -181,6 +200,7 @@ bool participant_isVisible(participant_t* part, point_t* p)
     Functionality: helper function to iterate through set of points visible to participant */
 void point_checker(void *arg, const char *key, void *item)
 {
+	// STYLE: be defensive here, check parameters before using them               
     pointBool_t *pointBool = arg;
     point_t* point = item;
     if (item != NULL) {

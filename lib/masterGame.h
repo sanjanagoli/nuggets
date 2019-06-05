@@ -17,6 +17,10 @@
 #include <stdbool.h>
 #include <dirent.h>
 #include <limits.h>
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "../libcs50/set.h"
 #include "../libcs50/file.h"
 #include "../lib/point.h"
@@ -25,6 +29,10 @@
 
 /**************** global types ****************/
 typedef struct masterGame masterGame_t;  //opaque to users of the modules
+
+/* 
+  STYLE: use 'const' where possible in function prototypes.
+ */
 
 /**************** masterGame_new ****************/
 /* initializes masterGame structure
@@ -39,6 +47,7 @@ typedef struct masterGame masterGame_t;  //opaque to users of the modules
  *	
  * returns a masterGame data structure
  * returns NULL if there is an issue allocating memory for the masterGame structure
+ * STYLE: what's the memory contract?
 */
 masterGame_t * masterGame_new(char * pathname, int seed);
 
@@ -204,6 +213,7 @@ void masterGame_delete(masterGame_t * mg);
  *
  * checks if the master game is null
  * if not returns the map stored inside master game
+ * STYLE: what's the memory contract?
  */
 map_t * masterGame_getMap(masterGame_t * mg); 
 
@@ -218,6 +228,7 @@ map_t * masterGame_getMap(masterGame_t * mg);
  * if one of the active particiapants has the same id as the given one
  * returns that participant
  * returns NULL if master game is null
+ * STYLE: what's the memory contract?
  */
 participant_t * masterGame_getPart(masterGame_t * mg, char id);
 
@@ -229,6 +240,7 @@ participant_t * masterGame_getPart(masterGame_t * mg, char id);
  *
  * checks if the master game is null
  * if not returns set of active participants stored inside master game
+ * STYLE: what's the memory contract?
  */
 set_t * masterGame_getActiveParticipants(masterGame_t * mg);
 

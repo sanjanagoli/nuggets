@@ -3,9 +3,12 @@
 #
 # Dan DiPietro
 
+## STYLE: define shorthand variables for ./support, ./lib, ./libcs50
+
 CFLAGS = -Wall -pedantic -std=c11 -ggdb
 CC = gcc
 MAKE = make
+## GRADER: the spec requires name 'server' for this program.
 PROG = gameComm
 OBJS = gameComm.o
 LIBS = ./support/support.a ./libcs50/libcs50.a
@@ -21,6 +24,7 @@ libraries:
 	$(MAKE) --directory=lib
 	$(MAKE) --directory=support
 
+## GRADER: target name is 'comm' but what it builds is gameComm
 comm: $(OBJS) $(LIBS) $(LLIBS)
 	$(CC) $(CFLAGS) $(OBJS) $(LLIBS) $(LIBS) -o $(PROG)
 

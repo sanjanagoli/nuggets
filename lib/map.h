@@ -1,6 +1,7 @@
 /*
  * map.h - header file for nuggets game map module
  *
+ ** STYLE: missing description
  * Description here
  *
  * Author: Dan DiPietro
@@ -9,6 +10,9 @@
 
 #ifndef __MAP_H
 #define __MAP_H
+/* 
+  STYLE: lovely style!
+ */
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -17,6 +21,9 @@
 typedef struct map map_t;  // opaque to users of the module
 
 /**************** functions ****************/
+/* 
+  STYLE: use 'const' where possible in function prototypes.
+ */
 
 /**************** map_new ****************/
 /* Create a new map struct
@@ -63,21 +70,25 @@ char map_getChar(map_t* map, int x, int y);
 
 /**************** map_getRows ****************/
 /* Retrieve the number of rows in the map (the maximum y-coordinate)
+* STYLE: wrong; number of rows = max y-coordinate + 1
 *
 * Caller provides:
 *   A valid map struct with mapData and valid x and y positions
 * We return:
 *   The character located at the given coordinates
+* STYLE: wrong; this is a copy of comment for getChar
 */
 int map_getRows(map_t* map);
 
 /**************** map_getCols ****************/
 /* Retrieve the number of columns in the map (the maximum x-coordinate)
+* STYLE: wrong; number of columns = max x-coordinate + 1
 *
 * Caller provides:
 *   A valid map struct with mapData and valid x and y positions
 * We return:
 *   The character located at the given coordinates
+* STYLE: wrong; this is a copy of comment for getChar
 */
 int map_getCols(map_t* map);
 

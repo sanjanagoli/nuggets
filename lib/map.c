@@ -1,6 +1,10 @@
 // #############################################################################
 // Overview
 // #############################################################################
+/* 
+  STYLE: your ### lines are one-character too wide, causing them to
+  wrap in emacs.
+ */
 
 /*
 * map.c - nuggets game map module
@@ -12,6 +16,10 @@
 * See map.h for more information
 */
 
+/* 
+  STYLE: generally, this file has very nice style.
+ */
+
 // #############################################################################
 // Imports
 // #############################################################################
@@ -21,6 +29,10 @@
 #include <string.h>
 #include <time.h>
 #include <limits.h>
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "../libcs50/file.h"
 #include "../libcs50/set.h"
 #include "point.h"
@@ -30,6 +42,10 @@
 // Global Types
 // #############################################################################
 
+/* 
+  STYLE: each member of the struct should have a brief inline comment
+  to describe it.
+ */
 typedef struct map {
   char* mapData;
   int nrows;
@@ -45,6 +61,10 @@ typedef struct map {
 // Local Types
 // #############################################################################
 
+/* 
+  STYLE: each member of the struct should have a brief inline comment
+  to describe it.
+ */
 struct ray {
   int xloc; // x-location of the ray
   int yloc; // y-location of the ray
@@ -64,6 +84,9 @@ struct nugLocHelper {
 // Local Functions
 // #############################################################################
 
+/* 
+  STYLE: use 'const' where possible in function prototypes.
+ */
 static void expandRay(map_t* map, struct ray* r, set_t* visPoints);
 static bool setHasPointWrapper(set_t* set, int x, int y);
 static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y);
@@ -95,6 +118,7 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   // Get number of rows and verify that each row has same number of columns
   int nrows = 1;
   char* cols;
+	// GRADER: what if it returns NULL?
   cols = freadlinep(dataPointer);
   int ncols = strlen(cols);
   free(cols);
@@ -108,6 +132,7 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   fclose(dataPointer);
 
   // Check that map isn't above max number of bytes
+	// STYLE: no magic numbers, please
   if ((nrows*ncols + 10) > maxBytes) {
     return NULL;
   }
@@ -128,6 +153,9 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
     return NULL;
   }
 
+/* 
+  STYLE: ok, but I'd recommend letting main() decide how to handle seed. 
+ */
   // Set seed for random generation
   if (seed != -1 && seed >= 0) {
     srand(seed);
@@ -137,6 +165,11 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
 
   map->nrows = nrows;
   map->ncols = ncols;
+
+/* 
+  STYLE: add a paragraph comment here to describe the following code block
+ */
+
   dataPointer = fopen(mapData, "r");
   char* mapFromFile = freadfilep(dataPointer);
   map->mapData = mapFromFile;
@@ -145,6 +178,9 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   set_t* emptySpaces = map_getEmptySpots(map);
   int emptySpacesCount = 0;
   set_iterate(emptySpaces, &emptySpacesCount, countHelper);
+/* 
+  STYLE: no magic numbers, please
+ */
   if (emptySpacesCount - 26 < maxPiles) {
     free(map->mapData);
     free(map);
@@ -156,11 +192,17 @@ map_t* map_new(char* mapData, int maxBytes, int goldTotal,
   }
   set_delete(emptySpaces, pointDeleteHelper);
   
+/* 
+  STYLE: add a paragraph comment here to describe the following code block
+ */
   map->consumedNugs = consumedNugs;
   map->nuggetLocs = nuggetLocs;
   map->nugsRemaining = goldTotal;
   map_genNugs(map, minPiles, maxPiles);
   
+/* 
+  STYLE: add a paragraph comment here to describe the following code block
+ */
   if (map->avgValue < 1) { // Return null and delete
     map_delete(map);
     return NULL;
@@ -181,6 +223,10 @@ char map_getChar(map_t* map, int x, int y) {
   }
   char* mapData = map->mapData;
   int index = ((map->ncols)*y) + (x+y);
+/* 
+  STYLE: no need for a variable; just 
+  return mapData[(index)];
+ */
   char returnChar = mapData[(index)];
   return returnChar;
 }
@@ -209,6 +255,7 @@ char* map_getMapData(map_t* map) {
   if (map == NULL || map->mapData == NULL) {
     return NULL;
   }
+	// GRADER: what if malloc fails (returns NULL)?
   char* allocatedMap = malloc(strlen(map->mapData)+1);
   strcpy(allocatedMap, map->mapData);
   return allocatedMap;
@@ -257,6 +304,9 @@ int map_consumeNug(map_t* map, int x, int y) {
     free(pointS);
     (map->pilesRemaining)--;
     
+/* 
+  STYLE: add a paragraph comment to explain what happens below
+ */
     int valueToReturn;
     if (map->pilesRemaining == 0) {
       valueToReturn = map->nugsRemaining;
@@ -293,6 +343,10 @@ bool map_nuggetPresent(map_t* map, int x, int y) {
 /**************** map_isEmptySpot ****************/
 /* see map.h for description */
 bool map_isEmptySpot(map_t* map, int x, int y) {
+/* 
+  STYLE: the if() statement here is extraneous; write one line:
+	return (map != NULL && map_getChar(map, x, y) == '.');
+ */
   if (map != NULL && map_getChar(map, x, y) == '.') {
     return true;
   }
@@ -320,6 +374,9 @@ int map_pilesRemaining(map_t* map) {
 /**************** map_genNugs ****************/
 /* see map.h for description */
 void map_genNugs(map_t* map, int minPiles, int maxPiles) {
+/* 
+  STYLE: write a paragraph comment here to explain what this does.
+ */
   if (map != NULL) {
     int pilesToMake = (rand() % (maxPiles - minPiles + 1)) + minPiles;
     map->pilesRemaining = pilesToMake;
@@ -347,6 +404,11 @@ void map_genNugs(map_t* map, int minPiles, int maxPiles) {
 /**************** map_getVisibility ****************/
 /* see map.h for description */
 set_t* map_getVisibility(map_t* map, int x, int y) {
+/* 
+  STYLE: this function and its helpers are complex; write comments here
+  to explain the approach in detail - or reference such an explanation
+  in README.md or IMPLEMENTATION.md
+ */
   if (map != NULL) {
     set_t* visiblePoints = set_new();
     point_t* startPoint = point_new(x, y);
@@ -426,13 +488,29 @@ void map_delete(map_t* map) {
 // #############################################################################
 // Local Functions
 // #############################################################################
+/* 
+  STYLE: Local functions need good header comments because they are
+  not described in a header file.  They should have nearly the same
+  level of detail as you might put into header comments for exported
+  functions.
+ */
 
 /**************** expandRay ****************/
 // Expands a ray along its x and y components and sets new values for its
 // descendent diagonal ray.
+/* 
+  STYLE: this function is complex and plays a critical role in the
+  game; write an explanation here about the method, and then insert
+  line and paragraph comments below to explain each part.
+
+  I recall from the demo that you have an interesting, impressive method.
+ */
 static void expandRay(map_t* map, struct ray* r, set_t* visPoints) {
   
   if (map != NULL && r != NULL && visPoints != NULL) {
+/* 
+  STYLE: add inline comments for each var to explain its purpose
+ */
     int xexpand = 0;
     int yexpand = 0;
     int xinc = r->xcomp;
@@ -501,6 +579,9 @@ static bool setHasPointWrapper(set_t* set, int x, int y) {
 /**************** addAdjacentWalls ****************/
 // allows us to add walls that are adjacent to rays to visiblePoints
 static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
+/* 
+  STYLE: again, this function needs a solid explanation.
+ */
   if (map != NULL && visPoints != NULL) {
     // Characters to add: -+|#
     
@@ -574,6 +655,10 @@ static void addAdjacentWalls(map_t* map, set_t* visPoints, int x, int y) {
 /**************** isWallChar ****************/
 // checks if a character is a corner, vertical wall, horizontal wall, or passage
 static bool isWallChar(char c) {
+/* 
+  STYLE: the if() statement is extraneous; the whole function can be just
+  	return (c == '-' || c == '+' || c == '|' || c == '#');
+ */
   if (c == '-' || c == '+' || c == '|' || c == '#') {
     return true;
   }

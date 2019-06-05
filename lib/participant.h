@@ -5,11 +5,18 @@
  * 
  * Sanjana Goli, May 2019
  */
+/* 
+  STYLE: some of your comment line are wider than 80 cols
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "../libcs50/set.h"
 #include "map.h"
 #include "point.h"
@@ -17,6 +24,9 @@
 /*  Participant structure holds location, map, id, player type, visiblePoints, and purse. */ 
 typedef struct participant participant_t; 
 
+/* 
+  STYLE: use 'const' where possible in function prototypes.
+ */
 /*  
     Input: takes in list of data encapsulated by participant struct
     Functionality: Creates/allocates memory new participant that contains initialize data

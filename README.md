@@ -57,11 +57,17 @@ much like in these [instructions](https://www.cs.dartmouth.edu/~cs50/Labs/update
 ## Usage
 
 To make the main program (`gameComm`) and all subdirectories call:
-```c
+
+<!-- STYLE: most markdown renderers require a blank line between text
+     and a code block; also, these code blocks are bash not c (I edited).
+     -->
+
+```bash
 make
 ```
 To clean,
-```c
+
+```bash
 make clean
 ```
 

@@ -1,5 +1,7 @@
 # moduleTesting
 
+<!-- STYLE: so glad to see all this unit testing! -->
+
 This library contains testing for four modules critical for the function of the CS50 final project.
 
 ## 'pointTest' module

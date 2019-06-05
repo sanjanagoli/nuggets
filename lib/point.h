@@ -3,12 +3,24 @@
  *
  * Sanjana Goli, Daniel DiPietro May 2019
  */
+/* 
+  STYLE: this file has DOS line endings!
+ */
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include "../libcs50/set.h"
 
+/* 
+  STYLE: 'point' is one of those structs that might actually be better
+  transparent than opaque; it is very simple, and there is less need
+  for methods to new, delete, get, set, when it is transparent.  Most
+  notably, a transparent struct can be simply declared as a local
+  variable, passed to a function, returned from a function, and even
+  compared in an if() statement... and thus you can eliminate all the
+  malloc/free involving points.
+ */
 /* Structure holds int x and int y --> opaque to users of the module */
 typedef struct point point_t;
 

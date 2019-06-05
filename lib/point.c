@@ -9,14 +9,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "../libcs50/set.h"
 #include "point.h"
 
 typedef struct boolPoint boolPoint_t;
+/* 
+  STYLE: The following prototypes should be marked 'static', if they
+  are meant to be for internal-use only, or should be removed entirely
+  if they are defined in the corresponding header file.
+ */
 boolPoint_t* boolPoint_new(bool containsValue, point_t* point);
 void boolPoint_delete(boolPoint_t* boolPoint);
 void set_iterateHelper(void *arg, const char *key, void *item);
 
+/* 
+  STYLE: each member of the struct should have a brief inline comment
+  to describe it.
+ */
 typedef struct point {
     int x;
     int y;
@@ -152,6 +165,8 @@ char* point_toString(point_t* point)
     if (point == NULL) {
         return NULL;
     } 
+		// GRADER: what if malloc fails (returns NULL)?
+		// STYLE: no magic numbers, please
     char* pointString = malloc((21+2)*sizeof(char));
     sprintf(pointString, "%d,%d", point->x, point->y);
     return pointString;
@@ -161,7 +176,9 @@ char* point_toString(point_t* point)
 /* see point.h for description */
 bool point_setHasPoint(point_t* point, set_t* set)
 {
-    bool val = false;
+	// STYLE: be defensive here, check parameters before using them 
+	  bool val = false;
+		// GRADER: what if this fails?
     boolPoint_t* boolPoint = boolPoint_new(val, point);
     set_iterate(set, boolPoint, set_iterateHelper);
     val = boolPoint->containsValue;
@@ -178,6 +195,7 @@ bool point_setHasPoint(point_t* point, set_t* set)
 */
 void set_iterateHelper(void *arg, const char *key, void *item)
 {
+	// STYLE: be defensive here, check parameters before using them
     boolPoint_t* boolPoint = arg;
     point_t* p = item;
 
@@ -194,6 +212,7 @@ void set_iterateHelper(void *arg, const char *key, void *item)
 */
 boolPoint_t* boolPoint_new(bool containsValue, point_t* point)
 {
+	// STYLE: be defensive here, check parameters before using them
     boolPoint_t* boolPoint = malloc(sizeof(boolPoint_t));
     if (boolPoint == NULL) {
         return NULL;

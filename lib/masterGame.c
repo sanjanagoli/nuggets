@@ -15,6 +15,10 @@
 #include <dirent.h>
 #include <limits.h>
 #include "masterGame.h"
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "../libcs50/set.h"
 #include "../support/file.h"
 #include "../lib/point.h"
@@ -28,11 +32,27 @@ static const int MaxPlayers = 26; // maximum number of players
 static const int GoldTotal = 250; // amount of gold in the game
 static const int GoldMinNumPiles = 10; // minimum number of gold piles
 static const int GoldMaxNumPiles = 30; // maximum number of gold piles
+/* 
+  STYLE: spec says players are represented with capital letters.  The
+  following statement could be written more easily as a string: static
+  const char PlayerSymbolSet[] = "abcdefghhijklmnopqrstuvwxyz"; But do
+  you really need it?  To convert from a player number to a player
+  letter, or vice versa, is just arithmetic:
+    https://www.cs.dartmouth.edu/~cs50/Labs/nuggets/#converting-from-letters-to-numbers-and-back
+ */
 static const char PlayerSymbolSet[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+/* 
+  STYLE: thank you for defining a const for this magic number.
+ */
 static const int GameSummaryLineLength = 29;
 
 
 /**************** local types ****************/
+/* 
+  STYLE: each member of the struct should have a brief inline comment
+  to describe it, and each struct should have a brief note about what
+  it is for.
+ */
 typedef struct setUpdater {
   set_t * updatedSet;
   participant_t * partToBeRemoved;
@@ -72,6 +92,11 @@ typedef struct masterGame {
 /* see masterGame.h for comments about exported functions */
 
 /**************** local functions ****************/
+/* 
+  STYLE: The following prototypes should be marked 'static', since
+  they are internal-use only.  Also, use 'const' where possible in
+  function prototypes.
+ */
 setUpdater_t * setUpdater_new(participant_t * partToBeRemoved, masterGame_t * mg);
 void setUpdater_delete(setUpdater_t * updatedSet, void (*itemdelete)(void *item));
 
@@ -114,12 +139,15 @@ static void pointDeleteHelper(void *item);
  */
 setUpdater_t * setUpdater_new(participant_t * partToBeRemoved, masterGame_t * mg)
 {
+	// STYLE: be defensive here, check parameters before using them
+	// GRADER: what if malloc fails (returns NULL)?
   setUpdater_t * setUpdater = malloc(sizeof(setUpdater_t));
 
   if(setUpdater == NULL){
     return NULL;
   }
   else{
+		// GRADER: what if this fails?
     setUpdater->updatedSet = set_new();
     setUpdater->partToBeRemoved = partToBeRemoved;
     setUpdater->map = mg->map;
@@ -153,6 +181,7 @@ void setUpdater_delete(setUpdater_t * setUpdater, void (*itemdelete)(void *item)
  */
 partAndIdHolder_t * partAndIdHolder_new(char id)
 {
+	// GRADER: what if malloc fails (returns NULL)?
   partAndIdHolder_t * pH = malloc(sizeof(partAndIdHolder_t));
 
   if(pH == NULL){
@@ -191,6 +220,8 @@ void partAndIdHolder_delete(partAndIdHolder_t * partAndIdHolder, void (*itemdele
  */
 partAndPointHolder_t * partAndPointHolder_new(point_t * point)
 {
+	// STYLE: be defensive here, check parameters before using them
+	// GRADER: what if malloc fails (returns NULL)?
   partAndPointHolder_t * pH = malloc(sizeof(partAndPointHolder_t));
 
   if(pH == NULL){
@@ -227,6 +258,7 @@ void partAndPointHolder_delete(partAndPointHolder_t * partAndPointHolder, void (
  */
 summer_t * summer_new(void)
 {
+	// GRADER: what if malloc fails (returns NULL)?
   summer_t * summer = malloc(sizeof(summer_t));
 
   if (summer == NULL) {
@@ -268,6 +300,8 @@ void summer_delete(summer_t * summer)
 
 stringsHolder_t * stringsHolder_new(char * idx, char * gameSummary)
 {
+	// STYLE: be defensive here, check parameters before using them
+	// GRADER: what if malloc fails (returns NULL)?
   stringsHolder_t * sH = malloc(sizeof(stringsHolder_t));
 
   if(sH == NULL){
@@ -291,6 +325,8 @@ void stringsHolder_delete(stringsHolder_t * sH)
 /* see masterame.h for description */
 masterGame_t * masterGame_new(char * pathname, int seed)
 {
+	// STYLE: be defensive here, check parameters before using them
+	// GRADER: what if malloc fails (returns NULL)?
   masterGame_t * masterGame = malloc(sizeof(masterGame_t));
 
   if (masterGame == NULL) {
@@ -298,8 +334,11 @@ masterGame_t * masterGame_new(char * pathname, int seed)
   } 
   else {
     // initialize contents of masterGame structure
+		// GRADER: what if this fails?
     masterGame->map = map_new(pathname, MaxBytes, GoldTotal, GoldMinNumPiles, GoldMaxNumPiles, seed);
+		// GRADER: what if this fails?
     masterGame->participants = set_new();
+		// GRADER: what if this fails?
     masterGame->removedPlayers = set_new();
     masterGame->containsSpectator = false;
     masterGame->playerCount = 0;
@@ -314,13 +353,15 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
   if(mg == NULL){
     return '\0';
   }
+	// STYLE: be defensive here, check playerRealName before using it
   participant_t * part = intializeParticipant(mg, playerRealName);
   if(part == NULL){
     return '\0';
   }
   if(playerRealName == NULL){
     if(mg->containsSpectator){
-      partAndIdHolder_t * ph = partAndIdHolder_new('$');
+			// GRADER: what if this fails?
+			partAndIdHolder_t * ph = partAndIdHolder_new('$');
       set_iterate(mg->participants, ph, getPartHelper);
       masterGame_removePart(mg, ph->part);
       partAndIdHolder_delete(ph, participantsSetDeleteHelper);
@@ -345,10 +386,16 @@ char masterGame_addPart(masterGame_t * mg, char * playerRealName)
  */
 static point_t * validPoint(masterGame_t * mg)
 {
+	// STYLE: be defensive here, check parameters before using them
   set_t * nuggets = map_getUnconsumedNugLocs(mg->map);
   set_t * playerPoints = createPlayerPointsSet(mg->participants);
+/* 
+  STYLE: the two lines below are repeated inside the loop; instead,
+  init x,y to 0,0 and the loop won't mind.  Avoids repeated code.
+ */
   int x = (rand() % (map_getCols(mg->map) - 0 + 1)) + 0;
   int y = (rand() % (map_getRows(mg->map) - 0 + 1)) + 0;
+	// GRADER: what if this fails?
   point_t * currPoint = point_new(x, y);
   while((point_setHasPoint(currPoint, nuggets)) || !map_isEmptySpot(mg->map, x, y) || point_setHasPoint(currPoint, playerPoints)){
     x = (rand() % (map_getCols(mg->map) - 0 + 1)) + 0;
@@ -373,11 +420,16 @@ static point_t * validPoint(masterGame_t * mg)
  */
 static participant_t * intializeParticipant(masterGame_t * mg, char * playerRealName)
 {
+	// STYLE: be defensive here, check parameters before using them
   bool isPlayer = true;
   point_t * startLocation = validPoint(mg);
   char participantSymbol = '\0';
   if(playerRealName != NULL){
     if(mg->playerCount > MaxPlayers - 1 || strlen(playerRealName) > MaxNameLength){
+/* 
+  STYLE: you could save the trouble of deleting this point if you'd
+  checked playerRealName at the top of function.
+ */
       point_delete(startLocation);
       return NULL;
     }
@@ -387,9 +439,13 @@ static participant_t * intializeParticipant(masterGame_t * mg, char * playerReal
     }
   }
   else{
+/* 
+  STYLE: why? define a named constant for this special code character
+ */
     participantSymbol = '$';
     isPlayer = false;
   }
+	// GRADER: what if this fails?
   participant_t * part = participant_new(startLocation, mg->map, participantSymbol, isPlayer, playerRealName);
   return part;
 }
@@ -411,14 +467,22 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
 
     if (removedPlayerId != '$') {
       participant_t * partCopy;
+			// GRADER: what if this fails?
       point_t * partLoc = point_new(point_getX(participant_getLoc(part)), point_getY(participant_getLoc(part)));
       char id = participant_getId(part);
       char * realName = participant_getRealName(part);
+			// GRADER: what if malloc fails (returns NULL)?
       char * realNameCopy = malloc(strlen(realName)+1);
       strcpy(realNameCopy, realName);
+			// GRADER: what if this fails?
       partCopy = participant_new(partLoc, mg->map, id, true, realNameCopy);
       participant_setPurse(partCopy, participant_getPurse(part));
       free(realNameCopy);
+/* 
+  STYLE: why did you make a copy and then just free it? I see
+  participant_new makes its own copy, so what was the point of
+  malloc/copy/free here?
+ */
       
       set_t* removedPlayers = mg->removedPlayers;
       set_insert(removedPlayers, str, partCopy);
@@ -426,6 +490,7 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
     else{
       mg->containsSpectator = false;
     }
+		// GRADER: what if this fails?
     setUpdater_t * setUpdater = setUpdater_new(part, mg);
     set_iterate(mg->participants, setUpdater, removePartHelper);
     set_delete(mg->participants, participantsSetDeleteHelper);
@@ -444,9 +509,11 @@ bool masterGame_removePart(masterGame_t* mg, participant_t* part)
  */
 static void removePartHelper(void *arg, const char *key, void * item)
 {
+	// STYLE: be defensive here, check parameters before using them
   setUpdater_t * setUpdater = arg;
   if(item != setUpdater->partToBeRemoved){
     participant_t * partCopy;
+		// GRADER: what if this fails?
     point_t * partLoc = point_new(point_getX(participant_getLoc(item)), point_getY(participant_getLoc(item)));
     char id = *key;
     
@@ -458,16 +525,20 @@ static void removePartHelper(void *arg, const char *key, void * item)
     char * realName = participant_getRealName(item);
     if(realName == NULL){
       isPlayer = false;
+			// GRADER: what if this fails?
       partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, NULL);
     }
     else{
       isPlayer = true;
+			// GRADER: what if malloc fails (returns NULL)?
       char * realNameCopy = malloc((strlen(realName)+1)*sizeof(char));
       strcpy(realNameCopy, realName);
       
+			// GRADER: what if this fails?
       partCopy = participant_new(partLoc, setUpdater->map, id, isPlayer, realNameCopy);
       participant_setPurse(partCopy, participant_getPurse(item));
       
+			// GRADER: what if this fails?
       set_t * visiblePoints = set_new();
       set_iterate(participant_getVisiblePoints(item), visiblePoints, pointSetCopier);
       participant_setVisibility(partCopy, visiblePoints);
@@ -492,6 +563,7 @@ static void removePartHelper(void *arg, const char *key, void * item)
 static void pointSetCopier(void *arg, const char * key, void * item)
 {
   set_t * visiblePoints = arg;
+	// GRADER: what if this fails?
   point_t * point = point_new(point_getX(item), point_getY(item));
   char * pointString = point_toString(point);
   if(!set_insert(visiblePoints, pointString, point)){
@@ -504,10 +576,15 @@ static void pointSetCopier(void *arg, const char * key, void * item)
 /* see masterGame.h for description */
 bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
 {
+/* 
+  STYLE: this function needs internal paragraph comments to explain
+  what each block of code will do.
+ */
   if(mg == NULL){
     return false;
   }
   else{
+		// GRADER: what if this fails?
     partAndIdHolder_t * ph = partAndIdHolder_new(id);
     set_iterate(mg->participants, ph, getPartHelper);
     participant_t * part = ph->part;
@@ -518,9 +595,11 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
     point_t * currLoc = participant_getLoc(part);
     int currX = point_getX(currLoc);
     int currY = point_getY(currLoc);
+		// GRADER: what if this fails?
     point_t * tempPoint = point_new(currX, currY);
     int newX = currX + dx;
     int newY = currY + dy;
+		// GRADER: what if this fails?
     point_t * newLoc = point_new(newX, newY);
     if(map_getChar(mg->map, newX, newY) == '.' || map_getChar(mg->map, newX, newY) == '#'){
       set_t * playerPoints = createPlayerPointsSet(mg->participants);
@@ -564,14 +643,20 @@ bool masterGame_movePartLoc(masterGame_t* mg, char id, int dx, int dy)
 /* see masterGame.h for description */
 bool masterGame_setPartLoc(masterGame_t* mg, char id, int x, int y)
 {
+/* 
+  STYLE: this function needs internal paragraph comments to explain
+  what each block of code will do.
+ */
   if(mg == NULL){
     return false;
   }
   else{
+		// GRADER: what if this fails?
     partAndIdHolder_t * ph = partAndIdHolder_new(id);
     set_iterate(mg->participants, ph, getPartHelper);
     participant_t * part = ph->part;
     partAndIdHolder_delete(ph, participantsSetDeleteHelper);
+		// GRADER: what if this fails?
     point_t * newLoc = point_new(x, y);
     if(map_getChar(mg->map, x, y) == '.' ||  map_getChar(mg->map, x, y) == '#'){
 
@@ -606,10 +691,15 @@ int masterGame_getPlayerCount(masterGame_t * mg)
 /**************** masterGame_displayMap() ****************/
 /* see masterGame.h for description */
 char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
+	// STYLE: be defensive here, check parameters before using them
   point_t* currLoc = participant_getLoc(part);
   int xLoc = point_getX(currLoc);
   int yLoc = point_getY(currLoc);
 
+/* 
+  STYLE: this function needs internal paragraph comments to explain
+  what each block of code will do.
+ */
   set_t * currVisiblePoints = map_getVisibility(mg->map, xLoc, yLoc);
   set_t * prevVisiblePoints = participant_getVisiblePoints(part);  
   set_t * visiblePoints = mergeSets(currVisiblePoints, prevVisiblePoints);
@@ -617,6 +707,7 @@ char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
   set_t * playerPoints = createPlayerPointsSet(mg->participants);
 
   char* mapData = map_getMapData(masterGame_getMap(mg));
+	// GRADER: what if malloc fails (returns NULL)?
   char* playerMap = malloc(strlen(mapData)+1);
   free(mapData);
   int idx = 0;
@@ -624,6 +715,7 @@ char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
   if (participant_getId(part) == '$') { // Spectator
     for (int y = 0; y < map_getRows(masterGame_getMap(mg)); y++) {
       for (int x = 0; x < map_getCols(masterGame_getMap(mg)); x++) {
+				// GRADER: what if this fails?
         point_t* p = point_new(x, y);
         if (point_setHasPoint(p, nuggets)) {
           playerMap[idx] = '*';
@@ -643,6 +735,7 @@ char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
   } else { // Normal player (visibility limited)
     for (int y = 0; y < map_getRows(masterGame_getMap(mg)); y++) {
       for (int x = 0; x < map_getCols(masterGame_getMap(mg)); x++) {
+				// GRADER: what if this fails?
         point_t* p = point_new(x, y);
         if (point_setHasPoint(p, visiblePoints)) {
           if (point_setHasPoint(p, currVisiblePoints)) {
@@ -691,12 +784,14 @@ char* masterGame_displayMap(masterGame_t* mg, participant_t* part) {
  * iterates over second set and adds it to new set too
  * only works if every time across both sets has unique key
  * returns new set containing merger of two sets passed in
+ * STYLE: what's the memory contract?
  */
 static set_t * mergeSets(set_t * setA, set_t * setB)
 {
   if(setA == NULL || setB == NULL){
     return NULL;
   }
+	// GRADER: what if this fails?
   set_t * mergedSet = set_new();
   set_iterate(setA, mergedSet, mergeSetsHelper);
   set_iterate(setB, mergedSet, mergeSetsHelper);
@@ -711,7 +806,9 @@ static set_t * mergeSets(set_t * setA, set_t * setB)
  */
 static void mergeSetsHelper(void *arg, const char * key, void * item)
 {
+	// STYLE: be defensive here, check parameters before using them
   set_t * mergedSet = arg;
+	// GRADER: what if this fails?
   point_t* pAdd = point_new(point_getX(item), point_getY(item));
   if (set_insert(mergedSet, key, pAdd) == false) {
     point_delete(pAdd);
@@ -729,6 +826,8 @@ static void mergeSetsHelper(void *arg, const char * key, void * item)
  */
 static set_t * createPlayerPointsSet(set_t * participants)
 {
+	// STYLE: be defensive here, check parameters before using them
+	// GRADER: what if this fails?
   set_t * participantPoints = set_new();
   set_iterate(participants, participantPoints, createPlayerPointsSetHelper);
   return participantPoints;
@@ -745,8 +844,10 @@ static set_t * createPlayerPointsSet(set_t * participants)
  */
 static void createPlayerPointsSetHelper(void *arg, const char * key, void * item)
 {
+	// STYLE: be defensive here, check parameters before using them
   set_t * participantPoints = arg;
   if(*key != '$'){
+		// GRADER: what if this fails?
     point_t* participantLoc = point_new(point_getX(participant_getLoc(item)), point_getY(participant_getLoc(item)));
     char * pointAsString = point_toString(participantLoc);
     set_insert(participantPoints, pointAsString, participantLoc);
@@ -763,6 +864,8 @@ static void createPlayerPointsSetHelper(void *arg, const char * key, void * item
  */
 static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint)
 {
+	// STYLE: be defensive here, check parameters before using them
+	// GRADER: what if this fails?
   partAndPointHolder_t * pAPH = partAndPointHolder_new(currPoint);
   set_iterate(mg->participants, pAPH, getParticipantIdAtPointHelper);
   participant_t * part = pAPH->part;
@@ -783,6 +886,7 @@ static char getParticipantIdAtPoint(masterGame_t * mg, point_t * currPoint)
  */
 static void getParticipantIdAtPointHelper(void *arg, const char * key, void * item)
 {
+	// STYLE: be defensive here, check parameters before using them
   partAndPointHolder_t * pAPH = arg;
   point_t * targetPoint = pAPH->point;
   int targetX = point_getX(targetPoint);
@@ -800,9 +904,12 @@ static void getParticipantIdAtPointHelper(void *arg, const char * key, void * it
 /**************** masterGame_endGame() ****************/
 /* see masterGame.h for description */
 char * masterGame_endGame(masterGame_t * mg) {
+	// STYLE: be defensive here, check parameters before using them
   int size = GameSummaryLineLength*35+1;
+	// GRADER: what if malloc fails (returns NULL)?
   char* gameSummary = calloc(size, 1);
   char* idx = gameSummary;
+	// GRADER: what if this fails?
   stringsHolder_t * sH = stringsHolder_new(idx, gameSummary);
 
   char* header = "\n----Active Participants-----\n";
@@ -836,10 +943,12 @@ char * masterGame_endGame(masterGame_t * mg) {
  */
 static void endGameHelper(void * arg, const char * key, void * item)
 {
+	// STYLE: be defensive here, check parameters before using them
   stringsHolder_t * sH = arg;
   char currId = *key;
   char spectatorId = '$';
   if(currId != spectatorId){
+		// GRADER: what if malloc fails (returns NULL)?
     char* line = malloc(GameSummaryLineLength+1);
     sprintf(line, "%2c%6d%20s\n", currId, participant_getPurse(item), participant_getRealName(item));
     for (int i = 0; i < strlen(line); i++) {
@@ -892,6 +1001,7 @@ participant_t * masterGame_getPart(masterGame_t * mg, char id)
   if(mg == NULL){
     return NULL;
   }
+	// GRADER: what if this fails?
   partAndIdHolder_t * ph = partAndIdHolder_new(id);
   set_iterate(mg->participants, ph, getPartHelper);
   participant_t * part = ph->part;

@@ -3,12 +3,20 @@
  *
  * Sanjana Goli, May 2019
  */
+/* 
+  STYLE: this file should be called server.c because spec requires
+  executable to be called 'server'.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+/* 
+  STYLE: do not put a pathname in #include lines; leave it to Makefile
+  to provide -I
+ */
 #include "./support/message.h"
 #include "./libcs50/set.h"
 #include "./lib/map.h"
@@ -19,6 +27,10 @@
 static const int MaxPlayers = 26;      // maximum number of players
 
 /************* local types ************/
+/* 
+  STYLE: each member of the struct should have a brief inline comment
+  to describe it.
+ */
 typedef struct addressId {
     addr_t* addrP;
     char id;
@@ -48,6 +60,11 @@ typedef struct setMg {
 } setMg_t;
 
 /************* functions ************/
+/* 
+  STYLE: The following prototypes should be marked 'static', since
+  they are internal-use only.  Also, use 'const' where possible in
+  function prototypes.
+ */
 long int random(void);
 void srandom(unsigned int seed);
 static bool handleMessage(void * arg, const addr_t from, const char * message);
@@ -76,8 +93,17 @@ int main(const int argc, char * argv[])
         //if caller does not provide a seed
         int seed;
         if (argc == 3) {
+/* 
+  STYLE: strtod() is better than atoi() but not quite what you need
+  here.  Recall the trick we learned in
+  https://github.com/cs50dartmouth/examples/blob/master/atoi.c
+ */
             seed = strtod(argv[2], NULL);
         } else {
+/* 
+  STYLE: better, just set seed = time(NULL); then the masterGame_new
+  does not need to figure out what to do.
+ */
             seed = -1;
         }
 
@@ -96,6 +122,12 @@ int main(const int argc, char * argv[])
             //uses/passes set mastergame structure so that message_loop has access to them
             setMg_t* setMg = setMg_new(mastergame, 0);
 
+/* 
+  STYLE: looks like you have not updated your code from the starter
+  kit in a loong time, because the following is no longer the
+  interface to message_loop.  That itself is not a big deal, but you
+  may have missed some other clarifications or corrections.
+ */
             if (setMg != NULL) {
                 message_loop(setMg, handleInput, handleMessage);
             }
@@ -103,9 +135,17 @@ int main(const int argc, char * argv[])
     }   
 }
 
+/* 
+  STYLE: In the new/current message library, handleInput is not
+  required, so this function would not need to be written.
+ */
 static bool
 handleInput(void * arg)
 {
+/* 
+  STYLE: as a result, when I hit 'enter' in your server window, the
+  game exits... but without telling all the players.
+ */
     return true;
 }
 
@@ -121,6 +161,11 @@ handleInput(void * arg)
 *  to continue
 */
 
+/* 
+  STYLE: this function is waaaay too long. rewrite it as a
+  'dispatcher' that simply recognizes the message type and calls a
+  helper function for each such type.
+ */
 static bool
 handleMessage(void * arg, const addr_t from, const char * message)
 {
@@ -133,14 +178,27 @@ handleMessage(void * arg, const addr_t from, const char * message)
     int numberWords = 0;
 	char delim[] = " ";
 		
+/* 
+  STYLE: tokenizing the string is a lot of work and unnecessary;
+  Recall the hint about parsing messages:
+    https://www.cs.dartmouth.edu/~cs50/Labs/nuggets/#parsing-messages
+ */
     //copies in order to find how many words are in query without affecting input
+	// GRADER: what if malloc fails (returns NULL)?
     char *line = malloc((strlen(message)+1)*sizeof(char));
     strcpy(line, message);
 
+/* 
+  STYLE: why do you need two copies?
+ */
+// GRADER: what if malloc fails (returns NULL)?
     char *linecopy = malloc((strlen(line)+1)*sizeof(char));
     strcpy(linecopy, line);
     char *count = strtok(linecopy, delim);
 
+/* 
+  STYLE: all of this tokenization should be in a helper fnction!
+ */
     //determines how many words are in the command in order to correctly allocate array
     while(count != NULL)
     {	
@@ -161,10 +219,17 @@ handleMessage(void * arg, const addr_t from, const char * message)
         j++;
     }
 
+/* 
+  STYLE: finally found some code about the game.
+ */
     if ( (words[0] != NULL) && (strcmp(words[0], "SPECTATE") == 0) ) {
 
+/* 
+  STYLE: write a helper handleSPECTATE()
+ */
         //send quit message to existing spectator if applicable
         if (masterGame_getContainsSpectator(mg)) {
+					// GRADER: what if malloc fails (returns NULL)?
             addrId_t* addrId = malloc(sizeof(addrId_t));
             addrId->id = '$';
             findAddressGivenId(setMg, addrId);
@@ -176,9 +241,15 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
 
         }
+/* 
+  STYLE: this could itself be done by a helper
+ */
         //removing existing spectator from set of activeParticipants handled by this method
         char id = masterGame_addPart(mg, NULL);
 
+/* 
+  STYLE: I'm not sure what the following code does...
+ */
         if (id != '\0') {
             addrId_t* addrId = addrId_new(id, from);
             if (setMg->spectatorIndex > -1) {
@@ -193,14 +264,26 @@ handleMessage(void * arg, const addr_t from, const char * message)
                 setMg->index = setMg->index+1;
             }
 
+/* 
+  STYLE: write a helper function sendGRID() to handle all this...
+ */
             //server responds to spectator with grid message
+						// STYLE: no magic numbers, please
             char gridmessage[20];
             sprintf(gridmessage, "GRID %d %d", map_getRows(map), map_getCols(map));
             message_send(from, gridmessage);
 
+/* 
+  STYLE: write a helper function sendDISPLAY() to handle all this...
+ */
             //display message that is sent to clients (spectators can see everything)
             participant_t* part = masterGame_getPart(mg, id);
             char* mapdata = masterGame_displayMap(mg, part);
+/* 
+  STYLE: malloc is not necessary; and what if it returns NULL?
+  see GRADER.md
+ */
+// GRADER: what if malloc fails (returns NULL)?
             char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
             strcpy(displayMessage, "DISPLAY\n");
             strcat(displayMessage, mapdata);
@@ -208,8 +291,16 @@ handleMessage(void * arg, const addr_t from, const char * message)
             free(mapdata);
             free(displayMessage);
 
+/* 
+  STYLE: write a helper function sendGOLD() to handle all this...
+ */
             //send gold message when new spectator joins -- always has p=0 and n=0
             //include nuggets remaining integer using map module method
+/* 
+  STYLE: malloc is not necessary; and what if it returns NULL?
+  see GRADER.md
+ */
+// GRADER: what if malloc fails (returns NULL)?
             char *mes = malloc((strlen("GOLD 0 0 rr")+2)*sizeof(char));
             strcpy(mes, "GOLD 0 0 ");
             char remaining[2];
@@ -227,6 +318,9 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
     //if a player joins (if a realName is given)
     } else if ( (words[0] != NULL) && (strcmp(words[0], "PLAY") == 0) ) {
+/* 
+  STYLE: write a helper handlePLAY()
+ */
         //if there are more than the maxplayers that try to join
         if (masterGame_getPlayerCount(mg) >= MaxPlayers) {
             message_send(from, "NO");
@@ -245,6 +339,11 @@ handleMessage(void * arg, const addr_t from, const char * message)
                     addrId_t* addrId = addrId_new(id, from);
                     setMg->addrIds[setMg->index] = addrId;
                     setMg->index = setMg->index+1;
+/* 
+  STYLE: When you need a string variable of a fixed size, there is no
+  need for malloc.  Just declare a local string variable.
+ */
+// GRADER: what if malloc fails (returns NULL)?
                     char* mes = malloc((strlen("OK L")+2)*sizeof(char)); 
                     strcpy(mes, "OK ");
                     
@@ -255,6 +354,11 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
                     //fomratting message correctly
                     strcat(mes, str);
+/* 
+  STYLE: all of the above could be accomplished with two statements:
+    char mes[5]; // room for "OK k"
+    sprintf(mes, "OK %c", id);
+ */
                     message_send(from, mes);
                     free(mes);
 
@@ -275,6 +379,9 @@ handleMessage(void * arg, const addr_t from, const char * message)
         free(line);
         return false;
     } else if ( (words[0] != NULL) && (strcmp(words[0], "KEY") == 0) ) {
+/* 
+  STYLE: write a helper handleKEY()
+ */
         
         //char id = findId(partToAddress, (addr_t *) &from);
         
@@ -291,6 +398,10 @@ handleMessage(void * arg, const addr_t from, const char * message)
             } else if (isalpha(id)) {
                 participant_t* part = masterGame_getPart(mg, id);
                 int currPurse = participant_getPurse(part);
+/* 
+  STYLE: use a switch statement: 
+    https://www.cs.dartmouth.edu/~cs50/Labs/nuggets/#the-switch-statement
+ */
                 if (strcmp(words[1], "h") == 0) {
                     masterGame_movePartLoc(mg, id, -1, 0);
                 } else if (strcmp(words[1], "l") == 0) {
@@ -348,8 +459,15 @@ handleMessage(void * arg, const addr_t from, const char * message)
 
     } else {
         //if there are no more nuggets remaining in the game, quit out
+/* 
+  STYLE: spec requires a space after "NO"
+ */
         message_send(from, "NO...not a valid message from client");
         //still check if the game is over as determined by the number of nuggets
+/* 
+  STYLE: why check here? and note you're repeating all the code from
+  the prior pararaph.
+ */
         if (map_nugsRemaining(map) == 0) {
             set_t* activeParticipants = masterGame_getActiveParticipants(mg);
 
@@ -380,7 +498,11 @@ displayGameOver(set_t* activeParticipants, setMg_t* setMg)
         int index = setMg->index;
         char* summary = masterGame_endGame(setMg->mg);
 
+/* 
+  STYLE: malloc is not necessary here; see GRADER.md
+ */
         //creating gameover message in correct format to send to each client
+				// GRADER: what if malloc fails (returns NULL)?
         char* message = malloc((strlen(summary)+strlen("GAMEOVER\n")+1)*sizeof(char));
         strcpy(message, "GAMEOVER\n");
         strcat(message, summary);
@@ -476,7 +598,11 @@ setMg_new(masterGame_t* mg, int index)
 char*
 displayMapData(masterGame_t* mg, participant_t* part)
 {
+/* 
+  STYLE: malloc is not needed here; see GRADER.md
+ */
     char* mapdata = masterGame_displayMap(mg, part);
+		// GRADER: what if malloc fails (returns NULL)?
     char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
     strcpy(displayMessage, "DISPLAY\n");
     strcat(displayMessage, mapdata);
@@ -537,6 +663,10 @@ displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
 {
     if (setMg != NULL) {
         masterGame_t* mg = setMg->mg;
+/* 
+  STYLE: 'index' is not descriptive; is it the number of clients?
+  number of players?
+ */
         int index = setMg->index;
         //loop through all clients
         for (int i = 0; i < index; i++) {
@@ -547,9 +677,13 @@ displayMapDataToAll(setMg_t* setMg, set_t* activeParticipants)
                 participant_t* part = masterGame_getPart(mg, id);
                 bool exists = findWithSetValue(activeParticipants, part);
                 if (exists) {
+/* 
+  STYLE: malloc is not needed here; see GRADER.md
+ */
                     //creates map message in properly formatted way as specified by Requirements Spec
                     //display map returns map based on player's visible points
                     char* mapdata = masterGame_displayMap(setMg->mg, part);
+										// GRADER: what if malloc fails (returns NULL)?
                     char *displayMessage = malloc((strlen(mapdata)+strlen("DISPLAY\n")+1)*sizeof(char));
                     strcpy(displayMessage, "DISPLAY\n");
                     strcat(displayMessage, mapdata);
@@ -597,6 +731,13 @@ char
 findIdGivenAddress(addr_t addr, setMg_t* setMg)
 {   
     int index = setMg->index;
+/* 
+  STYLE: no, you should not peek inside the addr_t type.  I know it's
+  not technically opaque, but the function message_eqAddr() was
+  provided specifically so you could compare addresses.  If the
+  message module were ever to change it internal representation, your
+  code will break.
+ */
     //obtains the port number of the address to allow for comparison (easier to compare integers)
     int givenPort = ntohs(addr.sin_port);
     
@@ -604,6 +745,12 @@ findIdGivenAddress(addr_t addr, setMg_t* setMg)
         addr_t address = setMg->addrIds[i]->addr;
         int elementPort = ntohs(address.sin_port); 
         //if the port number of the given address matches the port number of the element in the array
+/* 
+  STYLE: furthermore, this approach fails, because you are only
+  comparing the port number but you need to be comparing *both* the
+  host and port to decide whether two addresses are equal.  That's
+  what message_eqAddr() does for you.
+ */
         if (givenPort == elementPort) {
             return setMg->addrIds[i]->id;
         }
@@ -613,6 +760,7 @@ findIdGivenAddress(addr_t addr, setMg_t* setMg)
 
 /* addrId_new: helper method to initialize addrId struct
 *  returns pointer to newly allocated addrId
+* STYLE: what's the memory contract?
 */
 static addrId_t*
 addrId_new(char id, addr_t addr)
