@@ -1,12 +1,13 @@
 # Nuggets
 
-This repository contains the code for the CS50 "Nuggets" game, in which players explore a set of rooms and passageways in search of gold nuggets.
+This repository contains the code for the "Nuggets" game, in which players explore a set of rooms and passageways in search of gold nuggets.
 The rooms and passages are defined by a *map* loaded by the server at the start of the game.
 The gold nuggets are randomly distributed in *piles* within the rooms.
 Up to 26 players, and one spectator, may play a given game.
 Each player is randomly dropped into a room when joining the game.
 Players move about, collecting nuggets when they move onto a pile.
-When all gold nuggets are collected, the game ends and a summary is printed.
+When all gold nuggets are collected, the game ends and a summary is printed. <br/> <br/>
+This program employed **unit testing and integration testing** and used feature branches; the team employed the agile methodology in the development if this program.
 
 ## Overview
 * `gameComm.c` -> main program that runs the server side of the game, manages adding/removing clients, calls game logic functions, and end/starts overall game
