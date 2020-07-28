@@ -43,18 +43,6 @@ See the [lib](lib/README.md) for essential game modules.
 See the [libcs50](libcs50/README.md) for useful utility modules provided from class.
 
 
-
-## Updating your starter kit
-
-To update your repo from the starter kit, *commit and push* your work, then
-
-    # do this once:
-    git remote add starter git@github.com:cs50spring2019/nuggets.git
-    # do this every time you want to update:
-    git pull starter master
-
-much like in these [instructions](https://www.cs.dartmouth.edu/~cs50/Labs/updates.html).
-
 ## Usage
 
 To make the main program (`gameComm`) and all subdirectories call:
